@@ -1,0 +1,14 @@
+node_modules
+migrations
+tests
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose*.yml
+package-lock.json
+redis-data
+backups
+mysql-init
+README.md
+LICENSE

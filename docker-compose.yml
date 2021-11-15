@@ -1,0 +1,105 @@
+version: '3'
+
+services:
+  bizleal-server:
+      build: .
+      container_name: 'bizleal'
+      restart: unless-stopped
+      env_file: ./.env
+      command: sh -c './wait-for mysqldb:3306 -- yarn run start'
+      image: bizleal-server
+      ports:
+        - $HOST_PORT:$PORT
+      depends_on:
+        - mysqldb
+        - redis
+      environment:
+        - MYSQL_HOST=mysqldb
+        - REDIS_HOST=redis
+      networks:
+        - bizlealserver_network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./redis-data:/redis-data
+    ports:
+      - 6379
+    networks:
+      - bizlealserver_network
+
+
+  mysqldb:
+      image: mysql
+      container_name: 'mysql_db'
+      restart: unless-stopped
+      env_file: ./.env
+      ports:
+        - 3306:3306
+      environment:
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+        - BACKUP_DIR=/backups
+      networks:
+        - bizlealserver_network
+      volumes:
+        - shared-data:/backups
+        - db-data:/var/lib/mysql
+        - mysql_config:/etc/mysql
+        - ./mysql-init:/docker-entrypoint-initdb.d/
+
+  backup:
+    image: databack/mysql-backup
+    user: "0"
+    container_name: 'backup'
+    depends_on:
+      - mysqldb
+    restart: unless-stopped
+    env_file: ./.env
+    volumes:
+     - shared-data:/backups
+    environment:
+     - DB_DUMP_TARGET=/backups
+     - DB_PASS=${MYSQL_ROOT_PASSWORD}
+     - DB_USER=root
+     - DB_DUMP_FREQ=60
+     - DB_DUMP_BEGIN=+5
+    #  - DB_DUMP_CRON=*/5 * * * *
+     - DB_SERVER=mysqldb
+     - DB_NAMES=bizleal
+     - DB_DUMP_SAFECHARS="no-colons
+    networks:
+     - bizlealserver_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpMyadmin
+    depends_on:
+      - mysqldb
+    environment:
+      PMA_HOST: mysqldb
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+      UPLOAD_LIMIT: 300M
+    restart: unless-stopped
+    networks:
+        - bizlealserver_network
+    ports:
+      - 8081:80
+
+volumes:
+    shared-data:
+      driver: local
+    db-data:
+      driver: local
+    mysql_config:
+
+networks:
+  bizlealserver_network:
+    driver: bridge
+

@@ -1,0 +1,370 @@
+const httpStatus = require('http-status');
+const logger = require('../config/logger')
+const dbModels = require('../config/dbmodels')
+const { User, user_cart: UserCart, user_cart_items: UserCartItem, products: Product, product_questions: ProductQuestion } = dbModels;
+const sequelize = require('../config/connection')
+const ApiError = require('../utils/ApiError');
+const seller = require('../models/seller');
+const { formattedPrice } = require('../config/helpers')
+
+const cartGet = async (reqBody, userId) => {
+  const { cartId, isOrder } = reqBody;
+  const userCart = await UserCartFindOne(cartId, userId, isOrder)
+
+  if (!userCart) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir sipariş bulunmamaktadır!');
+  }
+  return getUserCart(userCart);
+}
+const cartGetBySeller = async (reqBody, userId) => {
+  const { cartId } = reqBody;
+  const userCart = await UserCartFindOne(cartId, userId, 1)
+
+  if (!userCart) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir sipariş bulunmamaktadır!');
+  }
+  return getUserCartBySeller(userCart);
+}
+
+const getUserCartBySeller = (cart) => {
+  var totalProfit = 0;
+
+  const userCartItems = cart?.user_cart_items
+
+  const groupBy = (array, property) => {
+    return array.reduce((result, userCartItem) => {
+      const key = userCartItem.product.seller_seller[property];
+      if (!result[key]) {
+        result[key] = [];
+      }
+      result[key].push(userCartItem);
+      return result;
+    }, {});
+  }
+  const userCartitemsBySeller = groupBy(userCartItems || [], 'id');
+
+  var sellers = [];
+  for (var key in userCartitemsBySeller) {
+    const itemsByKey = userCartitemsBySeller[key];
+    var initialValue = { id: 0, name: '', marketplace_logo: '', marketplace_name: '', items: [] }
+    const reducer = (result, item) => {
+      var seller = item.product.seller_seller;
+      var profit = item.amount * (item.product.getDataValue('normal_price') - item.product.getDataValue('instant_price')) / 100
+      totalProfit += profit
+      result.id = seller.id
+      result.name = seller.name,
+        result.marketplace_logo = seller.marketplace_logo,
+        result.marketplace_name = seller.marketplace_name,
+        result.items = [...result.items, getUserCartItem(item, profit)]
+      return result;
+    }
+    sellers = [...sellers, itemsByKey.reduce(reducer, initialValue)]
+  }
+
+  return {
+    info: getUserCartInfo(cart, totalProfit),
+    sellers
+  }
+}
+
+
+const getUserCart = (cart) => {
+  var totalProfit = 0;
+  const userCartItems = cart?.user_cart_items?.map(item => {
+    var profit = item.amount * (item.product.getDataValue('normal_price') - item.product.getDataValue('instant_price')) / 100
+    totalProfit += profit
+    return getUserCartItem(item, profit)
+  })
+
+  return {
+    info: getUserCartInfo(cart, totalProfit),
+    items: userCartItems,
+    ratings: getUnique(cart?.user_chart_seller_ratings)
+  }
+}
+const getUserCartInfo = (cart, totalProfit) => {
+  return {
+    uuid: cart?.uuid,
+    subTotal: cart?.sub_total,
+    totalProfit: formattedPrice(totalProfit),
+    invoiceId: cart?.invoice_id,
+    dateCreated: cart?.dateCreated,
+    datePassed: cart?.datePassed,
+    status: cart?.status,
+    shippingId: cart?.address_id,
+  }
+
+}
+const getUserCartItem = (item, profit) => {
+  var numOfReturnedItems = 0;
+  const returns = item.user_cart_item_return_requests?.map(returnItem => {
+    numOfReturnedItems += returnItem?.return_amount | 0
+    return {
+      id: returnItem.id,
+      returnAmount: returnItem.return_amount,
+      date: returnItem.date,
+      status: returnItem.status
+    }
+  })
+  const reviewAvailable = item.product?.product_reviews?.length > 0 ? false : true;
+  return {
+    adId: item.product.id,
+    total_price: item.total_price,
+    date_created: item.date_created,
+    cartId: item.cart_id,
+    reviewAvailable: reviewAvailable,
+    amount: item.amount,
+    profit: formattedPrice(profit),
+    product: item?.product && getProduct(item.product),
+    returnableAmount: item.amount - numOfReturnedItems,
+    returns: returns,
+    status: item.status,
+  }
+}
+const getProduct = (product) => {
+  return {
+    adId: product?.id,
+    imageUrl: product && product.product_images && product?.product_images[0]?.url,
+    numOrders: product?.num_orders,
+    quantity: product?.total_amount,
+    normalPrice: product?.normal_price,
+    instantPrice: product?.instant_price,
+    modelId: product?.model_id,
+    brandName: product.model?.brand.name,
+    brandId: product.model?.brand.id,
+    modelName: product.model?.name,
+    categoryName: product?.model?.category.name,
+    categoryId: product?.model?.category.id,
+    sellerId: product?.seller_seller?.id,
+    sellerName: product.seller_seller?.name,
+    sellerLogo: product.seller_seller?.marketplace_logo,
+    sellerMarketPlaceName: product?.seller_seller?.marketplace_name,
+    description: product.description,
+  }
+}
+const UserCartFindOne = async (cartId, userId, isOrder) => {
+  return await UserCart?.findOne({
+    logging: false,
+    where: {
+      uuid: (cartId === null || cartId === undefined) ? null : cartId,
+      user_id: 23, //userId gelecek
+      status: (isOrder === 0 | isOrder === null) ? ['created', 'blocking'] : ['paid', 'preparing', 'delivering', 'delivered', 'canceled', 'refunded']
+    },
+    include: [
+      {
+        model: UserCartItem,
+        required: true,
+        as: 'user_cart_items',
+        attributes: ['id', 'cart_id', 'amount', 'total_price', 'date_created'],
+        include: [
+          {
+            association: 'product',
+            attributes: ['id', 'normal_price', 'instant_price'],
+            include: [
+              {
+                association: 'product_reviews',
+                required: false,
+                where: {
+                  user_id: 23, // userId gelecek
+                  product_id: sequelize.col('user_cart_items.product_id')
+                },
+              },
+              {
+                association: 'product_images',
+                required: false,
+                attributes: ['url']
+              },
+              {
+                association: 'seller_seller',
+              },
+              {
+                association: 'model',
+                required: false,
+
+                include: [
+                  {
+                    association: 'category',
+                    required: false,
+                    where: {
+                      id: sequelize.col('user_cart_items.product.model.category_id')
+                    }
+                  },
+                  {
+                    association: 'brand',
+                    required: false,
+
+                    where: {
+                      id: sequelize.col('user_cart_items.product.model.brand_id')
+                    }
+                  }
+                ]
+              },
+            ]
+          },
+          {
+            association: 'user_cart_item_return_requests',
+          },
+        ]
+      },
+      {
+        association: 'user_chart_seller_ratings',
+        required: false,
+        where: {
+          cart_id: sequelize.col('user_cart.id')
+        }
+      },
+    ],
+  })
+
+}
+
+const getUnique = (array) => {
+  return array?.map(item => item.seller_id).filter((value, index, self) => self.indexOf(value) === index)
+}
+
+const cartUpdate = async (reqBody, userId) => {
+  const { cartId, adId, amount } = reqBody;
+  const product = await Product.findOne({
+    where: {
+      id: adId
+    },
+  })
+  const userCart = await UserCartFindOne(cartId, userId, isOrder = null);
+  var newCart;
+  if (!userCart) {
+    const cartId = await createNewCart(userId, product, amount)
+    newCart = await UserCartFindOne(cartId, userId, isOrder = null);
+  }
+  else {
+    const userCartItemsLength = userCart?.user_cart_items.length;
+    const item = userCart?.user_cart_items?.find(item => item.product.id == adId)
+    if (item) {
+
+      if (amount == 0) {
+        if (userCartItemsLength === 1) {
+          await userCart.destroy()
+          return
+        }
+        var diff = amount - item.amount
+        await calculateCartSubTotal(userCart, item.product, diff)
+        await item.destroy();
+      } else {
+        var diff = amount - item.amount
+        item.amount = amount;
+        await item.save();
+        await calculateCartSubTotal(userCart, item.product, diff)
+      }
+    } else {
+      if (amount != 0) {
+        await createNewCartItem(userCart, product, amount)
+      }
+    }
+    newCart = await UserCartFindOne(cartId, userId, isOrder = null);
+  }
+  return getUserCart(newCart)
+
+}
+
+const calculateCartSubTotal = async (userCart, product, diff) => {
+  var newItemPrice = diff * product.getDataValue('normal_price')
+  userCart.sub_total = userCart.getDataValue('sub_total') + newItemPrice
+  await userCart.save()
+
+}
+const createNewCartItem = async (userCart, product, amount) => {
+  await UserCartItem.create(getCartItem(userCart.id, product, amount))
+  await calculateCartSubTotal(userCart, product, amount)
+}
+
+const createNewCart = async (userId, product, amount) => {
+  const subTotal = amount * product.getDataValue('normal_price')
+  const userCart = await UserCart.create({
+    user_id: 23,
+    status: "created",
+    sub_total: subTotal,
+    date_created: Date.now(),
+    date_updated: Date.now(),
+    invoice_id: null,
+    payment_id: null,
+    address_id: null,
+  })
+  await UserCartItem.create(
+    getCartItem(userCart.id, product, amount)
+  )
+  let newCart = await UserCart.findByPk(userCart.id)
+  return newCart.uuid
+}
+
+const getCartItem = (id, product, amount) => {
+  return {
+    cart_id: id,
+    product_id: product.id,
+    amount: amount,
+    payment_id: null,
+    block: 0,
+    total_price: product.normal_price * amount,
+    date_created: Date.now(),
+    date_updated: Date.now()
+  }
+
+}
+
+
+const UserCarts = async (userId) => {
+  const userCarts = await UserCart.findAll({
+    where: {
+      status: ["paid"],
+      user_id: 23 // userId gelecek
+    },
+    include: [
+      {
+        model: UserCartItem,
+        required: true,
+        as: 'user_cart_items',
+        attributes: ['id', 'cart_id', 'amount', 'total_price', 'date_created'],
+        include: [
+          {
+            association: 'product',
+            attributes: ['id', 'normal_price', 'instant_price'],
+          },
+        ]
+      },
+    ],
+  })
+  return userCarts;
+}
+
+const getCartList = async (userId) => {
+  const userCarts = await UserCarts(userId);
+  const userCartsAll = userCarts?.map(userCart => {
+    var totalProfit = 0;
+    userCart.user_cart_items.map(userCartItem => {
+      var profit = userCartItem.amount * (userCartItem.product.getDataValue('normal_price') - userCartItem.product.getDataValue('instant_price')) / 100
+      return totalProfit += profit
+    })
+    return getUserCartInfo(userCart, totalProfit)
+  })
+  return userCartsAll;
+}
+const askQuestion = async (reqBody, userId) => {
+  const { adId, question } = reqBody;
+  await ProductQuestion.create({
+    user_id: userId,
+    product_id: adId,
+    user_question: question,
+    user_question_date: Date.now(),
+    seller_answer: null,
+    seller_answer_date: null,
+    question_approved: 0,
+    answer_approved: 0
+  })
+
+}
+
+module.exports = {
+  cartGet,
+  cartUpdate,
+  getCartList,
+  cartGetBySeller,
+  askQuestion
+};

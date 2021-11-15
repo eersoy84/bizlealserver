@@ -1,0 +1,9 @@
+module.exports.authService = require('./authService');
+module.exports.emailService = require('./email.service');
+module.exports.tokenService = require('./tokenService');
+module.exports.userService = require('./userService');
+module.exports.categoryService = require('./categoryService');
+module.exports.routineService = require('./routineService');
+module.exports.orderService = require('./orderService');
+module.exports.cartService = require('./cartService');
+module.exports.sellerService = require('./sellerService');
