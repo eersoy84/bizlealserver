@@ -7,9 +7,6 @@ const itemController = require('../controllers/itemController')
 const router = express.Router();
 
 router.post('/askQuestion', auth(), validate(itemValidation.askQuestion), itemController.askQuestion);
-router.get('/', (req, res) => {
-    res.send({ message: 'Hello world2' })
-})
 
 module.exports = router;
 

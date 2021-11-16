@@ -16,9 +16,19 @@ const keyGeneratorByQuery = (req) => {
     }
     return cacheKey;
 }
-
+const keyGeneratorByBody = (req, userId) => {
+    var cacheKey = req.baseUrl + req.url + '?key';
+    if (userId) {
+        cacheKey += `.userId-{${userId}}`
+    }
+    for (const [key, value] of Object.entries(req.body)) {
+        cacheKey += `.${key}-{${value}}`
+    }
+    return cacheKey;
+}
 module.exports = {
     keyGenerator,
     keyGeneratorByParams,
-    keyGeneratorByQuery
+    keyGeneratorByQuery,
+    keyGeneratorByBody
 }

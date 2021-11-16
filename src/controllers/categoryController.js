@@ -3,7 +3,7 @@ const pick = require('../utils/pick');
 const catchAsync = require('../utils/catchAsync');
 const { categoryService } = require('../services');
 const redisClient = require('../config/redisClient');
-const { keyGenerator, keyGeneratorByParams } = require('../config/cacheDefaults');
+const { keyGenerator, keyGeneratorByParams } = require('../config/cacheKeyGenerator');
 
 
 const getCategories = catchAsync(async (req, res) => {
