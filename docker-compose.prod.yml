@@ -1,6 +1,6 @@
 version: '3'
 
 services:
-  node-app:
-    container_name: node-app-prod
+  bizleal-server:
+    container_name: bizleal-prod
     command: yarn start

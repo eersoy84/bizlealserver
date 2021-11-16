@@ -3,7 +3,6 @@ version: '3'
 services:
   bizleal-server:
       build: .
-      container_name: 'bizleal'
       restart: unless-stopped
       env_file: ./.env
       command: sh -c './wait-for mysqldb:3306 -- yarn run start'
