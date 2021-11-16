@@ -5,7 +5,7 @@ const httpStatus = require('http-status');
 const { keyGeneratorByParams, keyGenerator } = require('../config/cacheDefaults')
 
 
-const findCacheAll = (fn) => async (req, res, next) => {
+const findCacheAll = () => async (req, res, next) => {
   var key = keyGenerator(req)
   var result = await getCache(key)
   if (result) return res.status(httpStatus.OK).send(JSON.parse(result));
