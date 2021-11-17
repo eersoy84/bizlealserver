@@ -1,34 +1,46 @@
-const keyGeneratorByParams = (req) => {
-    var cacheKey = req.baseUrl;
-    for (const [key, value] of Object.entries(req.params)) {
+const setParams = (cacheKey, values) => {
+    for (const [key, value] of Object.entries(values)) {
         cacheKey += `.${key}-{${value}}`
     }
-    return cacheKey;
+    return cacheKey
 }
 
-const keyGenerator = (req) => {
-    return req.baseUrl + '.all';
-}
-const keyGeneratorByQuery = (req) => {
+const keyGeneratorByQuery = (req, userId) => {
     var cacheKey = req.baseUrl;
-    for (const [key, value] of Object.entries(req.query)) {
-        cacheKey += `.${key}-{${value}}`
-    }
-    return cacheKey;
-}
-const keyGeneratorByBody = (req, userId) => {
-    var cacheKey = req.baseUrl + req.url + '?key';
     if (userId) {
         cacheKey += `.userId-{${userId}}`
     }
-    for (const [key, value] of Object.entries(req.body)) {
-        cacheKey += `.${key}-{${value}}`
-    }
-    return cacheKey;
+    return setParams(cacheKey, req.query)
 }
+
+
+const keyGeneratorByBody = (req, userId) => {
+    var cacheKey = req.baseUrl + req.url;
+    if (userId) {
+        cacheKey += `.userId-{${userId}}`
+    }
+    return setParams(cacheKey, req.body)
+
+}
+const getPrefixWithoutUrl = (req, userId) => {
+    var prefix = req.baseUrl + '*';
+    if (userId) {
+        prefix += `.userId-{${userId}}*`
+    }
+    return prefix;
+}
+const getPrefix = (req, userId) => {
+    var prefix = req.baseUrl + req.url + '*';
+    if (userId) {
+        prefix += `.userId-{${userId}}*`
+    }
+    return prefix;
+}
+
+
 module.exports = {
-    keyGenerator,
-    keyGeneratorByParams,
     keyGeneratorByQuery,
-    keyGeneratorByBody
+    keyGeneratorByBody,
+    getPrefix,
+    getPrefixWithoutUrl
 }

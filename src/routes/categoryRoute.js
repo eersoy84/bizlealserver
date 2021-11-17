@@ -3,23 +3,24 @@ const validate = require('../middlewares/validate');
 const auth = require('../middlewares/auth');
 const categoryValidation = require('../validations/categoryValidation');
 const categoryController = require('../controllers/categoryController')
-const { findCacheAll, findCacheByParams } = require('../middlewares/cacheManager');
+const { findCacheByBody } = require('../middlewares/cacheManager');
 
 
 const router = express.Router();
 
-//## api/cateogry
+//## api/categories
 router.route('/')
-    .get(findCacheAll(), categoryController.getCategories)
+    .get(findCacheByBody(), categoryController.getCategories)
     .post(auth(), validate(categoryValidation.createCategory), categoryController.createCategory)
 
 
-// ## api/category/:id
+// ## api/categories/:id
 router.route('/:id')
-    .get(validate(categoryValidation.getCategory),
-        findCacheByParams(),
-        categoryController.getCategory)
-    .patch(auth(), validate(categoryValidation.updateCategory), categoryController.updateCategory)
+    .get(validate(categoryValidation.getCategory), findCacheByBody(), categoryController.getCategory)
+    .post(
+        // auth(),
+        // validate(categoryValidation.updateCategory),
+        categoryController.updateCategory)
 
 module.exports = router;
 

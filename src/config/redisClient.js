@@ -1,6 +1,7 @@
 const logger = require('./logger')
 var redis = require('redis');
 const { REDIS_HOST, REDIS_PORT } = process.env
+const async = require('async')
 const client = redis.createClient({
     port: REDIS_PORT,
     host: REDIS_HOST,
@@ -57,8 +58,18 @@ const deleteCache = (baseUrl) => {
 }
 
 
+const deleteWithPrefix = (key) => {
+    client.keys(key, function (err, rows) {
+        if (!err) {
+            async.each(rows, function (row, callbackDelete) {
+                client.del(row, callbackDelete)
+            })
+        }
+    });
+}
+
 // const close = () => {
 //     client.quit();
 // }
 
-module.exports = { get, set, deleteCache }
+module.exports = { get, set, deleteCache, deleteWithPrefix }

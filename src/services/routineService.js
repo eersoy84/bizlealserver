@@ -23,8 +23,13 @@ const getInstantAdInfo = async () => {
 };
 
 const getFavorites = async (userId) => {
-  return await db.query('CALL exposed_get_favorites(:user_id)',
-    { replacements: { user_id: userId } })
+  const favorites = await UserFavorites.findAll({
+    logging: false,
+    where: {
+      user_id: userId
+    }
+  })
+  return favorites.map(favorite => favorite.product_id)
 };
 
 
@@ -35,6 +40,7 @@ const getBin = async (bin) => {
 const follow = async (req) => {
   try {
     await UserFavorites.create({ user_id: req.user.id, product_id: req.body.adId })
+    return await getFavorites(req.user.id)
   } catch (err) {
     if (err.name == "SequelizeUniqueConstraintError") {
       throw new ApiError(httpStatus.BAD_REQUEST, "Bu ilanı zaten takip ediyordunuz!")
@@ -42,23 +48,17 @@ const follow = async (req) => {
     if (err.name == "SequelizeForeignKeyConstraintError")
       throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir ilan bulunmamaktadır!")
   }
+  return result
 
 };
+
 const unfollow = async (req) => {
-  try {
-    await UserFavorites.destroy(
-      {
-        where:
-          { user_id: req.user.id, product_id: req.body.adId }
-      })
-  } catch (err) {
-    logger.info(err.name)
-    if (err.name == "SequelizeUniqueConstraintError") {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Bu ilanı zaten takipten çıkmıştınız!")
-    }
-    if (err.name == "SequelizeForeignKeyConstraintError")
-      throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir ilan bulunmamaktadır!")
-  }
+  await UserFavorites.destroy(
+    {
+      where:
+        { user_id: req.user.id, product_id: req.body.adId }
+    })
+  return await getFavorites(req.user.id)
 };
 
 const setAddress = async (addressbody) => {
@@ -82,7 +82,7 @@ const setAddress = async (addressbody) => {
     {
       replacements: {
         user_id: userId,
-        user_address_id:id,
+        user_address_id: id,
         city: city,
         district: district,
         address_text: addressText,

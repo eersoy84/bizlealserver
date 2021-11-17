@@ -2,15 +2,7 @@ const ApiError = require('../utils/ApiError');
 const redisClient = require('../config/redisClient')
 const logger = require('../config/logger')
 const httpStatus = require('http-status');
-const { keyGeneratorByParams, keyGenerator, keyGeneratorByBody } = require('../config/cacheKeyGenerator')
-
-
-const findCacheAll = () => async (req, res, next) => {
-  var key = keyGenerator(req)
-  var result = await getCache(key)
-  if (result) return res.status(httpStatus.OK).send(JSON.parse(result));
-  else return next()
-}
+const { keyGeneratorByBody, keyGeneratorByQuery } = require('../config/cacheKeyGenerator')
 
 const getCache = async (key) => {
   return redisClient.get(key)
@@ -21,13 +13,6 @@ const getCache = async (key) => {
     })
 }
 
-const findCacheByParams = () => async (req, res, next) => {
-  var key = keyGeneratorByParams(req)
-  var result = await getCache(key)
-  if (result) return res.status(httpStatus.OK).send(JSON.parse(result));
-  else return next()
-}
-
 const findCacheByBody = () => async (req, res, next) => {
   var userId = req.user?.id
   var key = keyGeneratorByBody(req, userId)
@@ -36,8 +21,15 @@ const findCacheByBody = () => async (req, res, next) => {
   else return next()
 }
 
+const findCacheByQuery = () => async (req, res, next) => {
+  var userId = req.user?.id
+  var key = keyGeneratorByQuery(req, userId)
+  var result = await getCache(key)
+  if (result) return res.status(httpStatus.OK).send(JSON.parse(result));
+  else return next()
+}
+
 module.exports = {
-  findCacheAll,
-  findCacheByParams,
-  findCacheByBody
+  findCacheByBody,
+  findCacheByQuery
 }
