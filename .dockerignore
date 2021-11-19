@@ -6,9 +6,11 @@ tests
 .dockerignore
 Dockerfile
 docker-compose*.yml
+*.yaml
 package-lock.json
 redis-data
 backups
 mysql-init
+kubernetes
 README.md
 LICENSE

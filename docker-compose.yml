@@ -5,7 +5,7 @@ services:
       build: .
       restart: unless-stopped
       env_file: ./.env
-      command: sh -c './wait-for mysqldb:3306 -- yarn run start'
+      command: sh -c 'yarn run start'
       image: bizleal-server
       ports:
         - $HOST_PORT:$PORT

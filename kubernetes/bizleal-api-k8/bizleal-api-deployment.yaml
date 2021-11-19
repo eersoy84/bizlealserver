@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizleal-api-deployment
+  labels:
+    app: bizleal-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bizleal-api
+  template:
+    metadata:
+      labels:
+        app: bizleal-api
+    spec:
+      imagePullSecrets:
+        - name: bizleal-api-sercret
+      containers:
+        - name: bizlea-api
+          image: eyupersoy/bizleal-api
+          imagePullPolicy: Always
+          command: ["yarn", "start"]
+          ports:
+            - containerPort: 5000
+          envFrom:
+          - configMapRef:
+              name: bizleal-api-config
+          - secretRef:
+              name: mysqldb-secret
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: bizleal-api-service # name of the service to be crleated
+spec:
+  type: LoadBalancer
+  selector:
+    app: bizleal-api
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      nodePort: 30000

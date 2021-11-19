@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+data:
+  REDIS_REPLICATION_MODE: master
+  ALLOW_EMPTY_PASSWORD: "yes"
