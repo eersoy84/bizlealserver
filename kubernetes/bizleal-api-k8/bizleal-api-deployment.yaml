@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: bizleal-api-deployment
+  namespace: bizleal
   labels:
     app: bizleal-api
 spec:
@@ -9,6 +10,11 @@ spec:
   selector:
     matchLabels:
       app: bizleal-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -34,13 +40,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: bizleal-api-service # name of the service to be crleated
+  name: bizleal-api-service
+  namespace: bizleal
 spec:
-  type: LoadBalancer
   selector:
     app: bizleal-api
   ports:
     - protocol: TCP
       port: 5000
       targetPort: 5000
-      nodePort: 30000

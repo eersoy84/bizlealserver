@@ -2,6 +2,7 @@ apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: bizleal-api-hpa
+  namespace: bizleal
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
