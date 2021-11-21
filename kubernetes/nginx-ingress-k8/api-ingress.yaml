@@ -5,27 +5,44 @@ metadata:
   namespace: bizleal
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    kubernetes.io/ingress.global-static-ip-name: bizleal-api-static-ip
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # kubernetes.io/ingress.global-static-ip-name: bizleal-api-static-ip
 spec:
   tls:
     - hosts:
-      - api.bizleal.net
+        - bizleal.net
+        - api.bizleal.net
+        - pma.bizleal.net
       secretName: ssl-cert-production
   rules:
-  - host: api.bizleal.net
+  - host: "bizleal.net"
     http:
       paths:
-        - path: '/'
+        - path: /
           pathType: Prefix
           backend:
             service:
               name: bizleal-api-service
               port:
                 number: 5000
-        - path: '/phpmyadmin'
-          pathType: Exact
+  - host: "api.bizleal.net"
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: bizleal-api-service
+              port:
+                number: 5000
+
+  - host: "pma.bizleal.net"
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
           backend:
             service:
               name: phpmyadmin-service
               port:
-                number: 8082
+                number: 8080

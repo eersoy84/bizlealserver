@@ -29,6 +29,9 @@ spec:
           command: ["yarn", "start"]
           ports:
             - containerPort: 5000
+          resources:
+            requests:
+              cpu: "250m"
           envFrom:
           - configMapRef:
               name: bizleal-api-config

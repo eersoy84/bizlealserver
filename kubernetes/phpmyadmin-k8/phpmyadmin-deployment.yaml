@@ -19,7 +19,7 @@ spec:
         - name: phpmyadmin
           image: phpmyadmin/phpmyadmin
           ports:
-            - containerPort: 8082
+            - containerPort: 80
           envFrom:
           - configMapRef:
               name: phpmyadmin-config
@@ -39,5 +39,5 @@ spec:
     app: phpmyadmin
   ports:
     - protocol: TCP
-      port: 8082
-      targetPort: 8082
+      port: 8080
+      targetPort: 80

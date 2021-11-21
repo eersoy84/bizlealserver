@@ -8,6 +8,8 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: api.bizleal.net
+  commonName: bizleal.net
   dnsNames:
+  - bizleal.net
   - api.bizleal.net
+  - pma.bizleal.net
