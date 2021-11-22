@@ -37,6 +37,9 @@ spec:
               name: bizleal-api-config
           - secretRef:
               name: mysqldb-secret
+          # - secretRef:
+          #     name: redis-secret
+              
 
 ---
 
