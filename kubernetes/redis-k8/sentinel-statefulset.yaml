@@ -20,8 +20,6 @@ spec:
         command: [ "sh", "-c" ]
         args:
           - |
-            set -x
-            REDIS_PASSWORD=a-very-complex-password-here
             nodes=redis-0.redis-service.bizleal.svc.cluster.local,redis-1.redis-service.bizleal.svc.cluster.local,redis-2.redis-service.bizleal.svc.cluster.local
 
             for i in ${nodes//,/ }
@@ -44,7 +42,6 @@ spec:
             sentinel down-after-milliseconds mymaster 5000
             sentinel failover-timeout mymaster 60000
             sentinel parallel-syncs mymaster 1
-            sentinel auth-pass mymaster $REDIS_PASSWORD
             " > /etc/redis/sentinel.conf
             cat /etc/redis/sentinel.conf
         volumeMounts:
@@ -74,7 +71,7 @@ spec:
       storageClassName: "standard"
       resources:
         requests:
-          storage: 50Mi
+          storage: 5Mi
 ---
 apiVersion: v1
 kind: Service
