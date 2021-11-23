@@ -34,6 +34,10 @@ spec:
                     break
                 fi
             done
+            if [ "$MASTER" == "" ]; then
+              echo "waiting for redis to initialize..."
+              exit 1
+            fi
             echo "sentinel monitor mymaster $MASTER 6379 2" >> /tmp/master
             echo "port 5000
             sentinel resolve-hostnames yes
