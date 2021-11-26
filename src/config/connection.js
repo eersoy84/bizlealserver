@@ -3,18 +3,53 @@ const config = require('./config');
 const logger = require('./logger');
 
 
-const { host, username, password, dbName, dialect } = config.env === 'development' ? config.mysql.development : config.mysql.production;
-const db = new Sequelize(dbName, username, password, {
-    host: host || 'localhost',
+const { username, password, dbName, dialect, master_db, read_only_db } = config.env === 'development' ? config.mysql.development : config.mysql.production;
+// const db = new Sequelize(dbName, username, password, {
+//     host: master_db || 'localhost',
+//     dialect,
+//     operatorsAliases: Sequelize.Op,
+//     pool: {
+//         max: 5,
+//         min: 0,
+//         acquire: 30000,
+//         idle: 10000
+//     }
+// });
+
+
+const db = new Sequelize(dbName, null, null, {
     dialect,
     operatorsAliases: Sequelize.Op,
-    pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
+    replication: {
+        read: {
+            host: read_only_db,
+            username,
+            password,
+            pool: {
+                max: 5,
+                min: 0,
+                acquire: 30000,
+                idle: 10000
+            }
+        },
+        write: {
+            host: master_db,
+            username,
+            password,
+            pool: {
+                max: 10,
+                min: 0,
+                acquire: 30000,
+                idle: 10000
+            }
+        },
+
     }
 });
+
+
+
+
 
 const initDb = async () => {
     try {

@@ -4,7 +4,8 @@ metadata:
   name: phpmyadmin-config
   namespace: bizleal
 data:
-    PMA_HOST: mysqldb-service
+    # PMA_HOST: mysql-read #service name for mysql master
+    PMA_HOST: mysql-0.mysql #service name for mysql master
     PMA_PORT: "3306"
     PMA_ARBITRARY: "1"
     UPLOAD_LIMIT: 300M

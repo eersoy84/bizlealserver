@@ -24,7 +24,7 @@ spec:
           - configMapRef:
               name: phpmyadmin-config
           - secretRef:
-              name: mysqldb-secret 
+              name: mysql-secret 
 
 
 

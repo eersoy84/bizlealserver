@@ -9,7 +9,7 @@ const redisClient = require('../config/redisClient');
 const getAds = catchAsync(async (req, res) => {
     const result = await routineService.getAds(req.user.id);
     if (result) {
-        redisClient.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result), 60);
+        redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result), 60);
     }
     res.send(result);
 });
@@ -17,7 +17,7 @@ const getAds = catchAsync(async (req, res) => {
 const getAdsCdn = catchAsync(async (req, res) => {
     const result = await routineService.getAdsCdn();
     if (result) {
-        redisClient.set(keyGeneratorByBody(req, null), JSON.stringify(result), 60);
+        redisClient?.set(keyGeneratorByBody(req, null), JSON.stringify(result), 60);
     }
     res.send(result);
 });
@@ -30,7 +30,7 @@ const getInstantAdInfo = catchAsync(async (req, res) => {
 const getFavorites = catchAsync(async (req, res) => {
     const result = await routineService.getFavorites(req.user.id);
     if (result) {
-        redisClient.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
+        redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
     }
     res.send(result);
 });
@@ -38,7 +38,7 @@ const getFavorites = catchAsync(async (req, res) => {
 const follow = catchAsync(async (req, res) => {
     const result = await routineService.follow(req);
     if (result) {
-        redisClient.deleteWithPrefix(getPrefix(req, req.user.id));
+        redisClient?.deleteWithPrefix(getPrefix(req, req.user.id));
     }
     res.status(httpStatus.CREATED).send(result);
 });
@@ -46,7 +46,7 @@ const follow = catchAsync(async (req, res) => {
 const unfollow = catchAsync(async (req, res) => {
     const result = await routineService.unfollow(req);
     if (result) {
-        redisClient.deleteWithPrefix(getPrefix(req, req.user.id));
+        redisClient?.deleteWithPrefix(getPrefix(req, req.user.id));
     }
     res.status(httpStatus.OK).send(result);
 });

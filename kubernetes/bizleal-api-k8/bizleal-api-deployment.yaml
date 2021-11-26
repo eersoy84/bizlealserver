@@ -6,7 +6,7 @@ metadata:
   labels:
     app: bizleal-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: bizleal-api
@@ -24,21 +24,19 @@ spec:
         - name: bizleal-api-sercret
       containers:
         - name: bizlea-api
-          image: eyupersoy/bizleal-api
-          imagePullPolicy: Always
+          image: eyupersoy/bizleal-api:v1
+          imagePullPolicy: IfNotPresent
           command: ["yarn", "start"]
           ports:
             - containerPort: 5000
           resources:
             requests:
-              cpu: "250m"
+              cpu: "120m"
           envFrom:
           - configMapRef:
               name: bizleal-api-config
           - secretRef:
-              name: mysqldb-secret
-          # - secretRef:
-          #     name: redis-secret
+              name: mysql-secret
               
 
 ---

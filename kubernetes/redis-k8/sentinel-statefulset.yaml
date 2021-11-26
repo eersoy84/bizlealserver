@@ -64,6 +64,10 @@ spec:
           mountPath: /etc/redis/
         - name: data
           mountPath: /data
+        resources:
+          requests:
+            cpu: 25m
+            memory: 20Mi
       volumes:
       - name: redis-config
         emptyDir: {}

@@ -48,7 +48,6 @@ const follow = async (req) => {
     if (err.name == "SequelizeForeignKeyConstraintError")
       throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir ilan bulunmamaktadır!")
   }
-  return result
 
 };
 

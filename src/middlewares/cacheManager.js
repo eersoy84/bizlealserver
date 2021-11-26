@@ -5,12 +5,14 @@ const httpStatus = require('http-status');
 const { keyGeneratorByBody, keyGeneratorByQuery } = require('../config/cacheKeyGenerator')
 
 const getCache = async (key) => {
-  return redisClient.get(key)
-    .then(res => res)
-    .catch(err => {
-      logger.error(err)
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Rediste bir hata oluştu!')
-    })
+  if (redisClient?.isConnected()) {
+    return redisClient?.get(key)
+      .then(res => res)
+      .catch(err => {
+        logger.error(err)
+        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Rediste bir hata oluştu!')
+      })
+  }
 }
 
 const findCacheByBody = () => async (req, res, next) => {
