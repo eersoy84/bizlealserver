@@ -8,6 +8,6 @@ data:
   MYSQL_DATABASE: "bizleal"
   USER: "root"
   REDIS_PORT: "6379"
-  MASTER_DB: mysql-0.mysql #service name for mysql master database
-  READ_ONLY_DB: mysql-read #service name for mysql replica databases
+  MASTER_DB: mysql-primary #service name for mysql master database
+  READ_ONLY_DB:  mysql-secondary-headless #service name for mysql replica databases
   REDIS_HOST: redis-service

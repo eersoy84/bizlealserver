@@ -14,7 +14,7 @@ services:
         - redis
       environment:
         - MASTER_DB=mysqldb
-        - REDIS_HOST = redis
+        - REDIS_HOST=redis
       networks:
         - bizlealserver_network
 
