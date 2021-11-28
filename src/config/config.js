@@ -13,6 +13,8 @@ const envVarsSchema = Joi.object()
     MYSQL_HOST: Joi.string(),
     MASTER_DB: Joi.string(),
     READ_ONLY_DB: Joi.string(),
+    READ_PORT: Joi.string(),
+    WRITE_PORT: Joi.string(),
     USER: Joi.string(),
     PASSWORD: Joi.string(),
     MYSQL_ROOT_PASSWORD: Joi.string(),
@@ -53,6 +55,8 @@ module.exports = {
       dbName: envVars.MYSQL_DATABASE,
       master_db: envVars.MASTER_DB,
       read_only_db: envVars.READ_ONLY_DB,
+      read_port: envVars.READ_PORT,
+      write_port: envVars.WRITE_PORT,
       dialect: envVars.DIALECT,
       port: envVars.DB_PORT
     },
@@ -62,6 +66,8 @@ module.exports = {
       dbName: envVars.MYSQL_DATABASE,
       master_db: envVars.MASTER_DB,
       read_only_db: envVars.READ_ONLY_DB,
+      read_port: envVars.READ_PORT,
+      write_port: envVars.WRITE_PORT,
       dialect: envVars.DIALECT,
       port: envVars.DB_PORT
     },

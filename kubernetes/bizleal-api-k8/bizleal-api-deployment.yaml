@@ -24,7 +24,7 @@ spec:
         - name: bizleal-api-sercret
       containers:
         - name: bizlea-api
-          image: eyupersoy/bizleal-api:v2
+          image: eyupersoy/bizleal-api:v3
           imagePullPolicy: IfNotPresent
           command: ["yarn", "start"]
           ports:

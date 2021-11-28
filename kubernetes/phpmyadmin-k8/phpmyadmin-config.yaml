@@ -6,7 +6,7 @@ metadata:
 data:
     # PMA_HOST: mysql-read #service name for mysql master
     # PMA_HOST: mysql-0.mysql #service name for mysql master
-    PMA_HOST: mysql-primary-headless #service name for mysql master
-    PMA_PORT: "3306"
+    PMA_HOST: mysql-cluster #service name for mysql master
+    PMA_PORT: "6446"
     PMA_ARBITRARY: "1"
     UPLOAD_LIMIT: 300M

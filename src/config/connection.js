@@ -3,7 +3,7 @@ const config = require('./config');
 const logger = require('./logger');
 
 
-const { username, password, dbName, dialect, master_db, read_only_db } = config.env === 'development' ? config.mysql.development : config.mysql.production;
+const { username, password, dbName, dialect, master_db, read_only_db,read_port,write_port } = config.env === 'development' ? config.mysql.development : config.mysql.production;
 
 
 const db = new Sequelize(dbName, null, null, {
@@ -11,7 +11,8 @@ const db = new Sequelize(dbName, null, null, {
     operatorsAliases: Sequelize.Op,
     replication: {
         read: {
-            host: read_only_db || master_db,
+            host: read_only_db,
+            port: read_port,
             username,
             password,
             pool: {
@@ -22,7 +23,8 @@ const db = new Sequelize(dbName, null, null, {
             }
         },
         write: {
-            host: master_db || read_only_db,
+            host: master_db,
+            port: write_port,
             username,
             password,
             pool: {
