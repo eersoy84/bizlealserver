@@ -21,7 +21,6 @@ const envVarsSchema = Joi.object()
     MYSQL_DATABASE: Joi.string(),
     DIALECT: Joi.string(),
     DB_PORT: Joi.number(),
-    MONGODB_URL: Joi.string().required().description('Mongo DB url'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -70,14 +69,6 @@ module.exports = {
       write_port: envVars.WRITE_PORT,
       dialect: envVars.DIALECT,
       port: envVars.DB_PORT
-    },
-  },
-  mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
     },
   },
   jwt: {

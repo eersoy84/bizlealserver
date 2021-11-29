@@ -119,15 +119,6 @@ const product = function (sequelize, DataTypes) {
     instantPrice: {
       type: DataTypes.VIRTUAL,
       allowNull: false,
-      // get() {
-      //   const formattedPrice = `${(this.instant_price).toLocaleString(undefined,
-      //     {
-      //       minimumFractionDigits: 2,
-      //       maximumFractionDigits: 2,
-      //     })} ₺`;
-      //   return formattedPrice;
-
-      // }
     },
     target_price: {
       type: DataTypes.INTEGER,

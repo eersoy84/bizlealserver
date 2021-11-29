@@ -11,7 +11,9 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "start": "cross-env NODE_ENV=production node src/index",
+    "build": "ncc build src/index.js -o dist",
+    "prod": "cross-env NODE_ENV=production node index.js",
+    "start": "cross-env NODE_ENV=production node src/index.js",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "test": "jest -i --colors --verbose --detectOpenHandles",
     "test:watch": "jest -i --watchAll",
@@ -33,8 +35,6 @@
     "express",
     "rest",
     "api",
-    "mongodb",
-    "mongoose",
     "es6",
     "es7",
     "es8",
@@ -48,6 +48,7 @@
     "prettier"
   ],
   "dependencies": {
+    "@vercel/ncc": "^0.32.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -61,13 +62,11 @@
     "joi": "^17.3.0",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
-    "mongoose": "^5.7.7",
     "morgan": "^1.9.1",
     "mysql2": "^2.3.2",
     "nodemailer": "^6.3.1",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
-    "pm2": "^5.1.0",
     "redis": "^3.1.2",
     "sequelize": "^6.7.0",
     "sequelize-auto": "^0.8.5",
