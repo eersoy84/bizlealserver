@@ -3,6 +3,7 @@ WORKDIR /tmp
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --production
 COPY . .
+RUN ls -la
 RUN yarn build
 
 FROM node:14-alpine
