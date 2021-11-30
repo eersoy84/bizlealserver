@@ -9,6 +9,7 @@ docker-compose*.yml
 *.yaml
 package-lock.json
 redis-data
+dist
 backups
 mysql-init
 kubernetes
