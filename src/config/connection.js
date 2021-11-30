@@ -16,7 +16,7 @@ const db = new Sequelize(dbName, null, null, {
             username,
             password,
             pool: {
-                max: 5,
+                max: 10,
                 min: 0,
                 acquire: 30000,
                 idle: 10000
@@ -28,7 +28,7 @@ const db = new Sequelize(dbName, null, null, {
             username,
             password,
             pool: {
-                max: 10,
+                max: 5,
                 min: 0,
                 acquire: 30000,
                 idle: 10000
@@ -37,10 +37,6 @@ const db = new Sequelize(dbName, null, null, {
 
     }
 });
-
-
-
-
 
 const initDb = async () => {
     try {

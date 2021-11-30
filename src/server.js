@@ -13,7 +13,6 @@ const routes = require('./routes');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const path = require('path');
-const redisClient = require('./config/redisClient');
 
 const app = express();
 
