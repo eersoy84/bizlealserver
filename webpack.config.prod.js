@@ -2,7 +2,8 @@ var webpack = require('webpack');
 var path = require('path');
 var fs = require('fs');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-require('dotenv').config({ path: './.env' }); 
+require('dotenv').config({ path: './.env' });
+const config = require('./src/config/config')
 
 var nodeModules = {};
 fs.readdirSync('node_modules')
@@ -25,9 +26,33 @@ module.exports = {
     new UglifyJsPlugin({
       test: /\.js($|\?)/i
     }),
-    new webpack.DefinePlugin({
-      "process.env": JSON.stringify(process.env)
-    }),
+    // new webpack.DefinePlugin({
+    //   'JWT_SECRET': JSON.stringify(process.env.JWT_SECRET),
+    //   'USER': JSON.stringify(process.env.USER),
+    //   'MYSQL_ROOT_PASSWORD': JSON.stringify(process.env.MYSQL_ROOT_PASSWORD),
+    //   'MYSQL_DATABASE': JSON.stringify(process.env.MYSQL_DATABASE),
+    //   'DIALECT': JSON.stringify(process.env.DIALECT),
+    //   'READ_PORT': JSON.stringify(process.env.READ_PORT),
+    //   'READ_ONLY_DB': JSON.stringify(process.env.READ_ONLY_DB),
+    //   'MASTER_DB': JSON.stringify(process.env.MASTER_DB),
+    //   'WRITE_PORT': JSON.stringify(process.env.WRITE_PORT),
+    //   'REDIS_PORT': JSON.stringify(process.env.REDIS_PORT),
+    //   'REDIS_HOST': JSON.stringify(process.env.REDIS_HOST),
+    // }),
+    new webpack.EnvironmentPlugin([
+      'JWT_SECRET',
+      'USER',
+      'MYSQL_ROOT_PASSWORD', 
+      'MYSQL_DATABASE',
+      'DIALECT',
+      'READ_PORT',
+      'READ_ONLY_DB',
+      'MASTER_DB',
+      'WRITE_PORT',
+      'REDIS_PORT',
+      'REDIS_HOST',
+      'NODE_ENV'
+    ])
   ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
