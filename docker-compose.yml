@@ -5,7 +5,7 @@ services:
       build: .
       restart: unless-stopped
       env_file: ./.env
-      command: sh -c 'node ./dist/main.js'
+      # command: sh -c 'node ./dist/main.js'
       image: bizleal-server
       ports:
         - $HOST_PORT:$PORT

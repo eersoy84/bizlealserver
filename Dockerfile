@@ -26,3 +26,5 @@ WORKDIR /app
 COPY --from=build /tmp/dist/ ./dist
 COPY --from=build /tmp/index.html ./dist/
 COPY --from=build /tmp/node_modules/ ./node_modules
+CMD ["node","./dist/main.js"]
+
