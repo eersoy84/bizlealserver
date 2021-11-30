@@ -8,7 +8,7 @@ RUN yarn build
 FROM node:14-alpine
 WORKDIR /app
 COPY --from=build /tmp/index.html ./dist/
-COPY --from=build /tmp/package.json /tmp/yarn.lock  /tmp/.env ./
+COPY --from=build /tmp/package.json /tmp/yarn.lock ./
 COPY --from=build /tmp/dist/ ./dist
 COPY --from=build /tmp/node_modules/ ./node_modules
 CMD ["yarn","start"]

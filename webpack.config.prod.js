@@ -26,6 +26,7 @@ module.exports = {
       test: /\.js($|\?)/i
     }),
     new webpack.DefinePlugin({
+      "process.env": JSON.stringify(process.env),
       'JWT_SECRET': JSON.stringify(process.env.JWT_SECRET),
       'USER': JSON.stringify(process.env.USER),
       'MYSQL_ROOT_PASSWORD': JSON.stringify(process.env.MYSQL_ROOT_PASSWORD),
