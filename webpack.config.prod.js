@@ -39,6 +39,7 @@ module.exports = {
       // 'REDIS_PORT': JSON.stringify(process.env.REDIS_PORT),
       // 'REDIS_HOST': JSON.stringify(process.env.REDIS_HOST),
       // 'MYSQL_ROOT_PASSWORD': JSON.stringify('123455'),
+        'NODE_ENV': JSON.stringify(process.env.NODE_ENV || production)
     }),
   ],
   resolve: {
