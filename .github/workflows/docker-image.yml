@@ -22,7 +22,7 @@ jobs:
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: docker build node js bizleal-api
       run: |
-        docker build . -t eyupersoy/bizleal-api:1.0.0
+        docker build -t eyupersoy/bizleal-api:1.0.0 .
     - name: docker push to repository
       run: |
         docker push eyupersoy/bizleal-api:1.0.0

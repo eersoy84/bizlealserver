@@ -3,7 +3,6 @@ var path = require('path');
 var fs = require('fs');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 require('dotenv').config({ path: './.env' });
-const config = require('./src/config/config')
 
 var nodeModules = {};
 fs.readdirSync('node_modules')
