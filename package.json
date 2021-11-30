@@ -11,8 +11,8 @@
     "node": ">=12.0.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.prod.js",
-    "start": "cross-env NODE_ENV=production node dist/main.js",
+    "build": "webpack --env production --config webpack.config.prod.js",
+    "start": "node -r dotenv/config dist/main.js",
     "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "prod": "cross-env NODE_ENV=production node -r dotenv/config src/index.js",
     "prod2": "cross-env NODE_ENV=production node -r dotenv/config dist/main.js"

@@ -11,7 +11,7 @@ const db = new Sequelize(dbName, null, null, {
     operatorsAliases: Sequelize.Op,
     replication: {
         read: {
-            host: read_only_db,
+            host: read_only_db || localhost,
             port: read_port,
             username,
             password,
@@ -23,7 +23,7 @@ const db = new Sequelize(dbName, null, null, {
             }
         },
         write: {
-            host: master_db,
+            host: master_db || localhost,
             port: write_port,
             username,
             password,
@@ -41,9 +41,10 @@ const db = new Sequelize(dbName, null, null, {
 logger.info(`dbName1: "${dbName}"`)
 logger.info(`masterdb: "${master_db}"`)
 logger.info(`environment: "${process.env.READ_ONLY_DB}"`)
-logger.info(`dbname2: "${config.mysql.development.dbName}"`)
+logger.info(`dbname2: "${config.mysql.production.read_only_db}"`)
 logger.info(`config: "${config}"`)
 logger.info(`env: "${config.env}"`)
+logger.info(`env: "${process.env.MYSQL_ROOT_PASSWORD}"`)
 
 const initDb = async () => {
     try {
