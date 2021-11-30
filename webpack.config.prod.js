@@ -26,7 +26,7 @@ module.exports = {
       test: /\.js($|\?)/i
     }),
     new webpack.DefinePlugin({
-      // "process.env": JSON.stringify(process.env),
+      "process.env": JSON.stringify(process.env),
       // 'JWT_SECRET': JSON.stringify(process.env.JWT_SECRET),
       // 'USER': JSON.stringify(process.env.USER),
       // 'MYSQL_ROOT_PASSWORD': JSON.stringify(process.env.MYSQL_ROOT_PASSWORD),
@@ -39,7 +39,7 @@ module.exports = {
       // 'REDIS_PORT': JSON.stringify(process.env.REDIS_PORT),
       // 'REDIS_HOST': JSON.stringify(process.env.REDIS_HOST),
       // 'MYSQL_ROOT_PASSWORD': JSON.stringify('123455'),
-        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || production)
+        // 'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || production)
     }),
   ],
   resolve: {
