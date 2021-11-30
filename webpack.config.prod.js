@@ -2,7 +2,8 @@ var webpack = require('webpack');
 var path = require('path');
 var fs = require('fs');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-require('dotenv').config({ path: './.env' }); 
+// require('dotenv').config({ path: './.env' }); 
+const config = require('./src/config/config')
 
 var nodeModules = {};
 fs.readdirSync('node_modules')
@@ -24,7 +25,10 @@ module.exports = {
   plugins: [
     new UglifyJsPlugin({
       test: /\.js($|\?)/i
-    })
+    }),
+    new webpack.DefinePlugin({
+      "process.env": JSON.stringify(process.env)
+    }),
   ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
@@ -36,9 +40,4 @@ module.exports = {
     ]
   },
   externals: nodeModules,
-  plugins: [
-    new webpack.DefinePlugin({
-      "process.env": JSON.stringify(process.env)
-    }),
-  ],
 };

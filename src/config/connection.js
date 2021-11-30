@@ -38,6 +38,13 @@ const db = new Sequelize(dbName, null, null, {
     }
 });
 
+logger.info(`dbName1: "${dbName}"`)
+logger.info(`masterdb: "${master_db}"`)
+logger.info(`environment: "${process.env.NODE_ENV}"`)
+logger.info(`dbname2: "${config.mysql.development.dbName}"`)
+logger.info(`config: "${config}"`)
+logger.info(`env: "${config.env}"`)
+
 const initDb = async () => {
     try {
         const success = await db.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`)

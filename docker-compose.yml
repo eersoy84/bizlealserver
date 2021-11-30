@@ -18,6 +18,7 @@ services:
         - WRITE_PORT=$WRITE_PORT
         - READ_PORT=$READ_PORT
         - REDIS_HOST=redis
+        - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       networks:
         - bizlealserver_network
 
