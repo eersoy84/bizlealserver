@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 const logger = require('./logger');
 const { MASTER_DB, READ_ONLY_DB, READ_PORT, WRITE_PORT } = process.env
 
-
+require('dotenv-webpack')
 logger.info(`dbName1: ${process.env.DB_NAME}`)
 // logger.info(`masterdb: ${process.env.MASTER_DB}`)
 logger.info(`masterdb1 : ${process.env.MASTER_DB}`)

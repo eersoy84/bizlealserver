@@ -49,8 +49,11 @@ if (config.env === 'production') {
   app.use('/api/auth', authLimiter);
 }
 
-app.get('/', (req, res)=> {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'));
+});
+app.get('/healthz', (req, res) => {
+  res.send(httpStatus.OK)
 });
 
 // v1 api routes
