@@ -1,11 +1,12 @@
 const logger = require('./logger')
 var redis = require('redis');
-const { REDIS_HOST, REDIS_PORT } = process.env
+const { REDIS_HOST, REDIS_PORT, MASTER_DB } = process.env
+console.log("redis==>bol olmalı masterDB:", MASTER_DB)
+console.log("redis=> dolu olmalı masterDB:", process.env.MASTER_DB)
 const async = require('async')
 const client = redis?.createClient({
     port: REDIS_PORT,
     host: REDIS_HOST,
-    // password  : 'redispassword',
 });
 
 client?.on('connect', function () {

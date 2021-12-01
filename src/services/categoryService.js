@@ -2,7 +2,6 @@ const httpStatus = require('http-status');
 const logger = require('../config/logger')
 const dbModels = require('../config/dbmodels')
 const { categories: Category, brands: Brand, model: Model } = dbModels;
-const sequelize = require('../config/connection')
 
 const ApiError = require('../utils/ApiError');
 

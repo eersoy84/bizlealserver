@@ -1,11 +1,12 @@
 const app = require('./server');
 const config = require('./config/config');
 const logger = require('./config/logger');
+require('dotenv-webpack')
 
 let server;
 
-server = app.listen(config.port, () => {
-  logger.info(`Listening to port ${config.port}`);
+server = app.listen(5000, () => {
+  logger.info(`Listening to port ${5000}`);
 });
 
 const exitHandler = () => {
