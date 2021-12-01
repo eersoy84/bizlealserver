@@ -6,12 +6,14 @@ COPY . .
 RUN yarn build
 
 FROM node:14.17.1-alpine
+RUN mkdir -p /app && chown -R node:node /app
+USER node
 WORKDIR /app
-COPY --from=build /tmp/index.html ./dist/
-COPY --from=build /tmp/package.json /tmp/yarn.lock ./
-COPY --from=build /tmp/dist/ ./dist
 COPY --from=build /tmp/node_modules/ ./node_modules
-CMD ["yarn","start"]
+COPY --from=build /tmp/index.html .
+COPY --from=build /tmp/dist/ .
+ENV NODE_ENV="production"
+CMD ["node","./main.js"]
 ##bunu yazarken ne uğraştım
 
 
