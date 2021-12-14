@@ -10,7 +10,7 @@ RUN mkdir -p /app && chown -R node:node /app
 USER node
 WORKDIR /app
 COPY --from=build /tmp/node_modules/ ./node_modules
-COPY --from=build /tmp/index.html .
+COPY --from=build /tmp/index.html /tmp/loaderio-304ff6a00b644e779082c6647571f070.txt ./
 COPY --from=build /tmp/dist/ .
 ENV NODE_ENV="production"
 CMD ["node","./main.js"]
