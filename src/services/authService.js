@@ -13,7 +13,7 @@ const logger = require('../config/logger')
  */
 const loginUserWithEmailAndPassword = async (email, password) => {
   const user = await userService.getUserByEmail(email);
-  if (!user || !(await user.checkPassword(password))) {
+  if (!user || !(await user.checkPassword(password, user.password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
   return user.withoutPassword(user.id);

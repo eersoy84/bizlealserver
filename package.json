@@ -13,7 +13,7 @@
   "scripts": {
     "build": "webpack --env production --config webpack.config.prod.js",
     "start": "cross-env NODE_ENV=production node dist/main.js",
-    "dev": "cross-env NODE_ENV=development nodemon src/index.js",
+    "dev": "cross-env NODE_ENV=development nodemon -r dotenv/config src/index.js",
     "dev-local": "cross-env NODE_ENV=development nodemon src/index.js",
     "prod": "node main.js"
   },
@@ -38,7 +38,7 @@
     "prettier"
   ],
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^5.0.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "cross-env": "^7.0.0",

@@ -1,11 +1,15 @@
 const validator = require('validator');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
 
 const Sequelize = require('sequelize');
 
-
+const hashPassword = async (user) => {
+  if (!user.changed('password')) return
+  var hash = await bcrypt.hash(user.password, 8)
+  return user.setDataValue('password', hash)
+}
 module.exports = function (sequelize, DataTypes) {
   const User = sequelize.define('users',
     {
@@ -37,14 +41,6 @@ module.exports = function (sequelize, DataTypes) {
         comment: "hidden",
         private: true,
         minlength: 6,
-        // validate(value) {
-        //   if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-        //     throw new Error('Password must contain at least one letter and one number');
-        //   }
-        // },
-        set(value) {
-          this.setDataValue('password', bcrypt.hashSync(value, bcrypt.genSaltSync(10), null))
-        }
       },
       role: {
         type: DataTypes.ENUM('superadmin', 'admin', 'standart'),
@@ -93,6 +89,10 @@ module.exports = function (sequelize, DataTypes) {
       }
     },
     {
+      hooks: {
+        beforeCreate: hashPassword,
+        beforeUpdate: hashPassword
+      },
       sequelize,
       tableName: 'users',
       timestamps: false,
@@ -135,8 +135,8 @@ module.exports = function (sequelize, DataTypes) {
 
   );
 
+
   User.prototype.withoutPassword = async function (id) {
-    console.log("user without password?")
     const x = await User.findOne(
       {
         where: { id },
@@ -144,9 +144,10 @@ module.exports = function (sequelize, DataTypes) {
       })
     return x;
   }
-  User.prototype.checkPassword = async function (userInputPassword) {
-    return await bcrypt.compare(userInputPassword, this.password);
-  };
+
+  User.prototype.checkPassword = async (userInputPassword, hashedPassword) => {
+    return await bcrypt.compare(userInputPassword, hashedPassword);
+  }
 
   User.associate = async function (email) {
     const user = await this.findOne({ where: { email } });

@@ -2,9 +2,6 @@
 const path = require('path');
 const Joi = require('joi');
 
-// dotenv.config({ path: path.join(__dirname, '../../.env') });
-require('dotenv-webpack')
-
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -40,10 +37,10 @@ const envVarsSchema = Joi.object()
   })
   .unknown();
 
-// const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
-// if (error) {
-//   throw new Error(`Config validation error: ${error.message}`);
-// }
+const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
+if (error) {
+  throw new Error(`Config validation error: ${error.message}`);
+}
 
 module.exports = {
   env: process.env.NODE_ENV,

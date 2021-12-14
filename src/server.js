@@ -13,6 +13,9 @@ const routes = require('./routes');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const path = require('path');
+const fs = require('fs/promises')
+const fssync = require('fs')
+
 
 const app = express();
 
@@ -52,8 +55,14 @@ if (config.env === 'production') {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'));
 });
+
 app.get('/healthz', (req, res) => {
   res.send(httpStatus.OK)
+});
+
+app.get('/loaderio-304ff6a00b644e779082c6647571f070.txt', async (req, res) => {
+  var data = await fs.readFile('./loaderio-304ff6a00b644e779082c6647571f070.txt')
+  res.send(data)
 });
 
 // v1 api routes
