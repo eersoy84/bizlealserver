@@ -14,10 +14,10 @@ const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const path = require('path');
 const fs = require('fs/promises')
-const fssync = require('fs')
-
+const BCrypt = require('bcrypt')
 
 const app = express();
+
 
 if (config.env !== 'test') {
   app.use(morgan.successHandler);
@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(xss());
 
 // gzip compression
-app.use(compression());
+// app.use(compression());
 
 // enable cors
 app.use(cors());
@@ -57,14 +57,19 @@ app.get('/', (req, res) => {
 });
 
 app.get('/healthz', (req, res) => {
-  res.send(httpStatus.OK)
+  res.status(httpStatus.OK).send()
 });
+
 
 app.get('/loaderio-304ff6a00b644e779082c6647571f070.txt', async (req, res) => {
   var data = await fs.readFile('./loaderio-304ff6a00b644e779082c6647571f070.txt')
-  res.send(data)
+  res.status(200).send(data)
 });
 
+app.get('/bcrypt', async (req, res) => {
+  const hash = await BCrypt.hash('abcdefesdfsd', 8)
+  res.status(200).send(hash)
+})
 // v1 api routes
 app.use('/api', routes);
 

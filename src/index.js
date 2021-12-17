@@ -1,8 +1,6 @@
 const app = require('./server');
 const config = require('./config/config');
 const logger = require('./config/logger');
-require('dotenv-webpack')
-
 let server;
 
 server = app.listen(5000, () => {

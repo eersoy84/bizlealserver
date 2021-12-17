@@ -6,12 +6,11 @@ const { keyGeneratorByBody, keyGeneratorByQuery } = require('../config/cacheKeyG
 
 const getCache = async (key) => {
   if (redisClient?.isConnected()) {
-    return redisClient?.get(key)
-      .then(res => res)
-      .catch(err => {
-        logger.error(err)
-        throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Rediste bir hata oluştu!')
-      })
+    try {
+      return await redisClient?.get(key)
+    } catch (error) {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Rediste bir hata oluştu!')
+    }
   }
 }
 
@@ -19,7 +18,7 @@ const findCacheByBody = () => async (req, res, next) => {
   var userId = req.user?.id
   var key = keyGeneratorByBody(req, userId)
   var result = await getCache(key)
-  if (result) return res.status(httpStatus.OK).send(JSON.parse(result));
+  if (result) res.status(httpStatus.OK).send(JSON.parse(result));
   else return next()
 }
 
