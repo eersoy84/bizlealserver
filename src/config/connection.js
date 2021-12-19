@@ -12,7 +12,7 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
             username: process.env.USER,
             password: process.env.MYSQL_ROOT_PASSWORD,
             pool: {
-                max: 10,
+                max: 100,
                 min: 0,
                 acquire: 30000,
                 idle: 10000
@@ -24,7 +24,7 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
             username: process.env.USER,
             password: process.env.MYSQL_ROOT_PASSWORD,
             pool: {
-                max: 5,
+                max: 50,
                 min: 0,
                 acquire: 30000,
                 idle: 10000

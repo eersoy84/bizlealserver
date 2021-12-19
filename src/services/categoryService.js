@@ -30,6 +30,7 @@ const createCategory = async (categoryBody) => {
 const getCategories = async () => {
   return await Category.findAll(
     {
+      logging: false,
       include: [
         {
           association: 'subCategories',
@@ -40,9 +41,9 @@ const getCategories = async () => {
                 // [sequelize.fn('COUNT', sequelize.col('subCategories.brands.models.products.id')), 'count']
               ],
               through: {
-                attributes: ['id','name','brand_id','category_id']
+                attributes: ['id', 'name', 'brand_id', 'category_id']
               },
-             
+
             }
           ],
         },
@@ -52,7 +53,7 @@ const getCategories = async () => {
             // [sequelize.fn('COUNT', sequelize.col('categories.brands.models.id')), 'count'],
           ],
           through: {
-            attributes: ['id','name','brand_id','category_id']
+            attributes: ['id', 'name', 'brand_id', 'category_id']
           },
         },
       ],

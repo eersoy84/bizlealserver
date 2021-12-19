@@ -2,6 +2,7 @@ const logger = require('./logger')
 var redis = require('redis');
 const { REDIS_HOST, REDIS_PORT } = process.env
 const async = require('async');
+const { reject } = require('lodash');
 const client = redis?.createClient({
     port: REDIS_PORT,
     host: REDIS_HOST,
@@ -27,9 +28,12 @@ client?.on('end', function () {
 });
 
 const set = async (key, value, minutes) => {
-    let result = new Promise(resolve => {
+    let result = new Promise((resolve, reject) => {
         client.set(key, value, (err, res) => {
-            if (err) console.error(err);
+            if (err) {
+                logger.error(err)
+                reject(err)
+            }
             if (minutes && minutes > 0)
                 client.expire(key, 60 * minutes)
             resolve(res);
@@ -39,9 +43,12 @@ const set = async (key, value, minutes) => {
 };
 
 const get = async (key) => {
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         client.get(key, (err, res) => {
-            if (err) console.error(err);
+            if (err) {
+                logger.error(err)
+                reject(err)
+            }
             resolve(res);
         })
     }

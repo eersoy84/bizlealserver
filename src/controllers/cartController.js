@@ -7,7 +7,7 @@ const { keyGeneratorByBody, getPrefix } = require('../config/cacheKeyGenerator')
 
 const cartGet = catchAsync(async (req, res) => {
   const result = await cartService.cartGet(req.body, req.user.id);
-  if (result) {
+  if (result && redisClient.isConnected()) {
     redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
   }
   res.status(httpStatus.OK).send(result);
@@ -15,7 +15,7 @@ const cartGet = catchAsync(async (req, res) => {
 
 const cartGetBySeller = catchAsync(async (req, res) => {
   const result = await cartService.cartGetBySeller(req.body, req.user.id);
-  if (result) {
+  if (result && redisClient.isConnected()) {
     redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
   }
   res.status(httpStatus.OK).send(result);
@@ -28,7 +28,7 @@ const cartUpdate = catchAsync(async (req, res) => {
 
 const getCartList = catchAsync(async (req, res) => {
   const result = await cartService.getCartList(req.user.id);
-  if (result) {
+  if (result && redisClient.isConnected()) {
     redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
   }
   res.status(httpStatus.OK).send(result);
