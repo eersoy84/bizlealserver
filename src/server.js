@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/healthz', (req, res) => {
-  res.status(httpStatus.OK).send()
+  res.status(httpStatus.OK).send('')
 });
 
 

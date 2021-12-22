@@ -34,8 +34,14 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
     }
 });
 
+logger.info(`dbname : ${process.env.DB_NAME}`)   
+logger.info(`master_db :${process.env.MASTER_DB}`)   
+logger.info(`readonly db: ${process.env.READ_ONLY_DB}`)   
+logger.info(`boş olmalı masterdb: ${MASTER_DB}`)   
+logger.info(`boş olmalı readonly : ${READ_ONLY_DB}`)   
 const initDb = async () => {
     try {
+        logger.info(`attemting to connect to "${process.env.DB_NAME}" database`)   
         const success = await db.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\`;`)
         if (success) {
             logger.info(`Successfully connected to database: "${process.env.DB_NAME}"`)
