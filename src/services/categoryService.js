@@ -70,7 +70,11 @@ const getCategories = async () => {
  * @returns {Promise<User>}
  */
 const getCategory = async (id) => {
-  return await Category.findByPk(id);
+  let result =  await Category.findByPk(id);
+  if(!result || result.length==0){
+    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir kayıt bulunmamaktadır!');
+  }
+  return result;
 };
 
 /**

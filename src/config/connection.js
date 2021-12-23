@@ -12,7 +12,7 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
             username: process.env.USER,
             password: process.env.MYSQL_ROOT_PASSWORD,
             pool: {
-                max: 100,
+                max: 90,
                 min: 0,
                 acquire: 30000,
                 idle: 10000
@@ -24,7 +24,7 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
             username: process.env.USER,
             password: process.env.MYSQL_ROOT_PASSWORD,
             pool: {
-                max: 50,
+                max: 30,
                 min: 0,
                 acquire: 30000,
                 idle: 10000
@@ -34,11 +34,6 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
     }
 });
 
-logger.info(`dbname : ${process.env.DB_NAME}`)   
-logger.info(`master_db :${process.env.MASTER_DB}`)   
-logger.info(`readonly db: ${process.env.READ_ONLY_DB}`)   
-logger.info(`boş olmalı masterdb: ${MASTER_DB}`)   
-logger.info(`boş olmalı readonly : ${READ_ONLY_DB}`)   
 const initDb = async () => {
     try {
         logger.info(`attemting to connect to "${process.env.DB_NAME}" database`)   
