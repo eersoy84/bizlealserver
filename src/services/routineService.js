@@ -37,10 +37,14 @@ const getBin = async (bin) => {
   return await db.query('CALL exposed_get_bin(:bin)',
     { replacements: { bin: bin } })
 };
+
 const follow = async (req) => {
   try {
-    await UserFavorites.create({ user_id: req.user.id, product_id: req.body.adId })
-    return await getFavorites(req.user.id)
+    let result = await UserFavorites.create({ user_id: req.user.id, product_id: req.body.adId })
+    if (result) {
+      return await getFavorites(req.user.id)
+    }
+    throw new Error()
   } catch (err) {
     if (err.name == "SequelizeUniqueConstraintError") {
       throw new ApiError(httpStatus.BAD_REQUEST, "Bu ilanı zaten takip ediyordunuz!")
@@ -52,13 +56,20 @@ const follow = async (req) => {
 };
 
 const unfollow = async (req) => {
-  await UserFavorites.destroy(
-    {
-      where:
-        { user_id: req.user.id, product_id: req.body.adId }
-    })
-  return await getFavorites(req.user.id)
-};
+  try {
+    let result = await UserFavorites.destroy(
+      {
+        where:
+          { user_id: req.user.id, product_id: req.body.adId }
+      })
+    if (result) {
+      return await getFavorites(req.user.id)
+    }
+    throw new Error("Böyle bir ilan bulunmamaktadır")
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, err.message)
+  };
+}
 
 const setAddress = async (addressbody) => {
   const { userId, id,

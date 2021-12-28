@@ -3,7 +3,7 @@ const pick = require('../utils/pick');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
 const { routineService } = require('../services');
-const { keyGeneratorByBody, getPrefix } = require('../config/cacheKeyGenerator');
+const { keyGeneratorByBody, getPrefix, getCustomPrefix } = require('../config/cacheKeyGenerator');
 const redisClient = require('../config/redisClient');
 
 const getAds = catchAsync(async (req, res) => {
@@ -24,7 +24,7 @@ const getAdsCdn = catchAsync(async (req, res) => {
 
 const getInstantAdInfo = catchAsync(async (req, res) => {
     const result = await routineService.getInstantAdInfo();
-    res.send(result);
+    res.status(httpStatus.OK).send(result);
 });
 
 const getFavorites = catchAsync(async (req, res) => {
@@ -32,13 +32,14 @@ const getFavorites = catchAsync(async (req, res) => {
     if (result && redisClient.isConnected()) {
         redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
     }
-    res.send(result);
+    res.status(httpStatus.OK).send(result);
 });
 
 const follow = catchAsync(async (req, res) => {
     const result = await routineService.follow(req);
+    console.log("result follow", result)
     if (result && redisClient.isConnected()) {
-        redisClient?.deleteWithPrefix(getPrefix(req, req.user.id));
+        await redisClient?.deleteWithPrefix(getCustomPrefix(req.baseUrl, "/favorites", req.user.id));
     }
     res.status(httpStatus.CREATED).send(result);
 });
@@ -46,7 +47,7 @@ const follow = catchAsync(async (req, res) => {
 const unfollow = catchAsync(async (req, res) => {
     const result = await routineService.unfollow(req);
     if (result && redisClient.isConnected()) {
-        redisClient?.deleteWithPrefix(getPrefix(req, req.user.id));
+        await redisClient?.deleteWithPrefix(getCustomPrefix(req.baseUrl, "/favorites", req.user.id));
     }
     res.status(httpStatus.OK).send(result);
 });

@@ -34,6 +34,15 @@ const getPrefix = (req, userId) => {
     if (userId) {
         prefix += `.userId-{${userId}}*`
     }
+    console.log("prefix", req.baseUrl, req.url)
+    return prefix;
+}
+const getCustomPrefix = (baseUrl, path, userId) => {
+    var prefix = baseUrl + path + '*';
+    if (userId) {
+        prefix += `.userId-{${userId}}*`
+    }
+    console.log("prefix", prefix)
     return prefix;
 }
 
@@ -42,5 +51,6 @@ module.exports = {
     keyGeneratorByQuery,
     keyGeneratorByBody,
     getPrefix,
-    getPrefixWithoutUrl
+    getPrefixWithoutUrl,
+    getCustomPrefix
 }
