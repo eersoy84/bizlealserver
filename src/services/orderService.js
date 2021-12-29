@@ -6,14 +6,6 @@ const models = require('../config/dbmodels')
 const { user_cart: UserCart, product_reviews: ProductReviews, user_chart_seller_ratings: SellerRatings } = models;
 
 
-/**
- * Login with username and password
- * @param {string} cartId
- * @param {string} userId
- * @param {string} comment
- * @param {string} rating
- * @returns {Promise<User>}
- */
 const rateItem = async (reqBody) => {
   const { cartId, userId, adId, comment, rating } = reqBody
   const cart = await UserCart.findOne({ where: { uuid: cartId } })

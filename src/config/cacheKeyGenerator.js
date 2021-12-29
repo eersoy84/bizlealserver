@@ -1,12 +1,12 @@
-const setParams = (cacheKey, values) => {
-    for (const [key, value] of Object.entries(values)) {
+const setParams = (cacheKey, query) => {
+    for (const [key, value] of Object.entries(query)) {
         cacheKey += `.${key}-{${value}}`
     }
     return cacheKey
 }
 
 const keyGeneratorByQuery = (req, userId) => {
-    var cacheKey = req.baseUrl;
+    let cacheKey = req.baseUrl;
     if (userId) {
         cacheKey += `.userId-{${userId}}`
     }

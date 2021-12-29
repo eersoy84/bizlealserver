@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { cartService } = require('../services');
 const redisClient = require('../config/redisClient');
-const { keyGeneratorByBody, getPrefix } = require('../config/cacheKeyGenerator');
+const { keyGeneratorByBody, getCustomPrefix } = require('../config/cacheKeyGenerator');
 
 
 const cartGet = catchAsync(async (req, res) => {
@@ -23,6 +23,9 @@ const cartGetBySeller = catchAsync(async (req, res) => {
 
 const cartUpdate = catchAsync(async (req, res) => {
   const result = await cartService.cartUpdate(req.body, req.user.id);
+  if (result && redisClient.isConnected()) {
+    await redisClient?.deleteWithPrefix(getCustomPrefix(req.baseUrl, "/get", req.user.id));
+  }
   res.status(httpStatus.OK).send(result);
 });
 

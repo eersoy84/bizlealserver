@@ -7,14 +7,26 @@ const ApiError = require('../utils/ApiError');
 const seller = require('../models/seller');
 const { formattedPrice } = require('../config/helpers')
 
-const cartGet = async (reqBody, userId) => {
-  const { cartId, isOrder } = reqBody;
-  const userCart = await UserCartFindOne(cartId, userId, isOrder)
+const initalCart = {
+  info: {},
+  items: [],
+  ratings: [],
+  taxes: []
+}
 
-  if (!userCart) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir sipariş bulunmamaktadır!');
+const cartGet = async (reqBody, userId) => {
+  try {
+    const { cartId, isOrder } = reqBody;
+    const userCart = await UserCartFindOne(cartId, userId, isOrder)
+    if (!userCart) {
+      return initalCart
+    }
+    return getUserCart(userCart);
+  } catch (err) {
+    console.log(err)
+    throw new ApiError(httpStatus.BAD_REQUEST, "Beklenmedik bir hata oluştu")
   }
-  return getUserCart(userCart);
+
 }
 const cartGetBySeller = async (reqBody, userId) => {
   const { cartId } = reqBody;
@@ -69,9 +81,10 @@ const getUserCartBySeller = (cart) => {
 
 
 const getUserCart = (cart) => {
-  var totalProfit = 0;
+  let totalProfit = 0;
   const userCartItems = cart?.user_cart_items?.map(item => {
-    var profit = item.amount * (item.product.getDataValue('normal_price') - item.product.getDataValue('instant_price')) / 100
+    console.log("item", item)
+    let profit = item.amount * (item.product.getDataValue('normal_price') - item.product.getDataValue('instant_price')) / 100
     totalProfit += profit
     return getUserCartItem(item, profit)
   })
@@ -79,9 +92,11 @@ const getUserCart = (cart) => {
   return {
     info: getUserCartInfo(cart, totalProfit),
     items: userCartItems,
-    ratings: getUnique(cart?.user_chart_seller_ratings)
+    ratings: getUnique(cart?.user_chart_seller_ratings),
+    taxes: []
   }
 }
+
 const getUserCartInfo = (cart, totalProfit) => {
   return {
     uuid: cart?.uuid,
@@ -106,13 +121,13 @@ const getUserCartItem = (item, profit) => {
       status: returnItem.status
     }
   })
-  const reviewAvailable = item.product?.product_reviews?.length > 0 ? false : true;
+  let reviewAvailable = item.product?.product_reviews?.length > 0 ? false : true;
   return {
     adId: item.product.id,
-    total_price: item.total_price,
-    date_created: item.date_created,
+    totalPrice: item.total_price,
+    dateCreated: item.date_created,
     cartId: item.cart_id,
-    reviewAvailable: reviewAvailable,
+    reviewAvailable,
     amount: item.amount,
     profit: formattedPrice(profit),
     product: item?.product && getProduct(item.product),
@@ -147,8 +162,8 @@ const UserCartFindOne = async (cartId, userId, isOrder) => {
     logging: false,
     where: {
       uuid: (cartId === null || cartId === undefined) ? null : cartId,
-      user_id: 23, //userId gelecek
-      status: (isOrder === 0 | isOrder === null) ? ['created', 'blocking'] : ['paid', 'preparing', 'delivering', 'delivered', 'canceled', 'refunded']
+      user_id: userId,
+      status: (isOrder === 0 || isOrder === null) ? ['created', 'blocking'] : ['paid', 'preparing', 'delivering', 'delivered', 'canceled', 'refunded']
     },
     include: [
       {
@@ -159,13 +174,13 @@ const UserCartFindOne = async (cartId, userId, isOrder) => {
         include: [
           {
             association: 'product',
-            attributes: ['id', 'normal_price', 'instant_price'],
+            attributes: ['id', 'normal_price', 'instant_price', 'total_amount', 'num_orders'],
             include: [
               {
                 association: 'product_reviews',
                 required: false,
                 where: {
-                  user_id: 23, // userId gelecek
+                  user_id: userId, // userId gelecek
                   product_id: sequelize.col('user_cart_items.product_id')
                 },
               },
@@ -224,44 +239,48 @@ const getUnique = (array) => {
 
 const cartUpdate = async (reqBody, userId) => {
   const { cartId, adId, amount } = reqBody;
-  const product = await Product.findOne({
-    where: {
-      id: adId
-    },
-  })
-  const userCart = await UserCartFindOne(cartId, userId, isOrder = null);
-  var newCart;
-  if (!userCart) {
-    const cartId = await createNewCart(userId, product, amount)
-    newCart = await UserCartFindOne(cartId, userId, isOrder = null);
-  }
-  else {
-    const userCartItemsLength = userCart?.user_cart_items.length;
-    const item = userCart?.user_cart_items?.find(item => item.product.id == adId)
-    if (item) {
-
-      if (amount == 0) {
-        if (userCartItemsLength === 1) {
-          await userCart.destroy()
-          return
-        }
-        var diff = amount - item.amount
-        await calculateCartSubTotal(userCart, item.product, diff)
-        await item.destroy();
-      } else {
-        var diff = amount - item.amount
-        item.amount = amount;
-        await item.save();
-        await calculateCartSubTotal(userCart, item.product, diff)
-      }
-    } else {
-      if (amount != 0) {
-        await createNewCartItem(userCart, product, amount)
-      }
+  try {
+    const product = await Product.findOne({
+      where: {
+        id: adId
+      },
+    })
+    const userCart = await UserCartFindOne(cartId, userId, isOrder = null);
+    let newCart;
+    if (!userCart) {
+      const cartId = await createNewCart(userId, product, amount)
+      newCart = await UserCartFindOne(cartId, userId, isOrder = null);
     }
-    newCart = await UserCartFindOne(cartId, userId, isOrder = null);
+    else {
+      const userCartItemsLength = userCart?.user_cart_items.length;
+      const item = userCart?.user_cart_items?.find(item => item.product.id == adId)
+      if (item) {
+        if (amount == 0) {
+          if (userCartItemsLength === 1) {
+            await userCart.destroy()
+            return initalCart
+          }
+          var diff = amount - item.amount
+          await calculateCartSubTotal(userCart, item.product, diff)
+          await item.destroy();
+        } else {
+          var diff = amount - item.amount
+          item.amount = amount;
+          await item.save();
+          await calculateCartSubTotal(userCart, item.product, diff)
+        }
+      } else {
+        if (amount != 0) {
+          await createNewCartItem(userCart, product, amount)
+        }
+      }
+      newCart = await UserCartFindOne(cartId, userId, isOrder = null);
+    }
+    return getUserCart(newCart)
   }
-  return getUserCart(newCart)
+  catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Sepet güncellenirken hata oluştu!")
+  }
 
 }
 
@@ -279,7 +298,7 @@ const createNewCartItem = async (userCart, product, amount) => {
 const createNewCart = async (userId, product, amount) => {
   const subTotal = amount * product.getDataValue('normal_price')
   const userCart = await UserCart.create({
-    user_id: 23,
+    user_id: userId,
     status: "created",
     sub_total: subTotal,
     date_created: Date.now(),
@@ -314,7 +333,7 @@ const UserCarts = async (userId) => {
   const userCarts = await UserCart.findAll({
     where: {
       status: ["paid"],
-      user_id: 23 // userId gelecek
+      user_id: userId
     },
     include: [
       {
