@@ -5,7 +5,7 @@ const { roleRights } = require('../config/roles');
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
   if (err || info || !user) {
-    return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate'));
+    return reject(new ApiError(httpStatus.UNAUTHORIZED, 'Lütfen giriş yapın'));
   }
   req.user = user;
   if (requiredRights.length) {

@@ -17,10 +17,22 @@ const getRatings = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send();
 });
 
+const cancelProduct = catchAsync(async (req, res) => {
+  await orderService.cancelProduct(req.body);
+  res.status(httpStatus.CREATED).send();
+});
+
+const returnProduct = catchAsync(async (req, res) => {
+  await orderService.returnProduct(req.body);
+  res.status(httpStatus.CREATED).send();
+});
+
 
 
 module.exports = {
   rateItem,
   rateSeller,
-  getRatings
+  getRatings,
+  cancelProduct,
+  returnProduct
 };

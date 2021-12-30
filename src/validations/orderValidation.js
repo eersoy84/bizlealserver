@@ -27,6 +27,25 @@ const rateSeller = {
   }),
 };
 
+const cancelProduct = {
+  body: Joi.object().keys({
+    id: Joi.number().integer().required().min(1),
+    notes: Joi.string().required().max(2048),
+    reasonId: Joi.number().integer().required().min(1),
+    returnAmount: Joi.number().integer().required().min(1),
+  }),
+};
+
+
+const returnProduct = {
+  body: Joi.object().keys({
+    cartId: Joi.string().guid().required().min(30).max(60),
+    adId: Joi.number().integer().required(),
+    notes: Joi.string().required().max(2048),
+    reason: Joi.string().required().max(2048),
+    returnAmount: Joi.number().integer().required().min(1),
+  }),
+};
 
 
 
@@ -36,4 +55,6 @@ const rateSeller = {
 module.exports = {
   rateItem,
   rateSeller,
+  cancelProduct,
+  returnProduct
 };

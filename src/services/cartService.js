@@ -23,7 +23,6 @@ const cartGet = async (reqBody, userId) => {
     }
     return getUserCart(userCart);
   } catch (err) {
-    console.log(err)
     throw new ApiError(httpStatus.BAD_REQUEST, "Beklenmedik bir hata oluştu")
   }
 
@@ -83,12 +82,10 @@ const getUserCartBySeller = (cart) => {
 const getUserCart = (cart) => {
   let totalProfit = 0;
   const userCartItems = cart?.user_cart_items?.map(item => {
-    console.log("item", item)
     let profit = item.amount * (item.product.getDataValue('normal_price') - item.product.getDataValue('instant_price')) / 100
     totalProfit += profit
     return getUserCartItem(item, profit)
   })
-
   return {
     info: getUserCartInfo(cart, totalProfit),
     items: userCartItems,
@@ -99,6 +96,7 @@ const getUserCart = (cart) => {
 
 const getUserCartInfo = (cart, totalProfit) => {
   return {
+    id: cart?.id,
     uuid: cart?.uuid,
     subTotal: cart?.sub_total,
     totalProfit: formattedPrice(totalProfit),
@@ -111,7 +109,7 @@ const getUserCartInfo = (cart, totalProfit) => {
 
 }
 const getUserCartItem = (item, profit) => {
-  var numOfReturnedItems = 0;
+  let numOfReturnedItems = 0;
   const returns = item.user_cart_item_return_requests?.map(returnItem => {
     numOfReturnedItems += returnItem?.return_amount | 0
     return {
@@ -123,6 +121,7 @@ const getUserCartItem = (item, profit) => {
   })
   let reviewAvailable = item.product?.product_reviews?.length > 0 ? false : true;
   return {
+    id: item.id,
     adId: item.product.id,
     totalPrice: item.total_price,
     dateCreated: item.date_created,
@@ -133,7 +132,7 @@ const getUserCartItem = (item, profit) => {
     product: item?.product && getProduct(item.product),
     returnableAmount: item.amount - numOfReturnedItems,
     returns: returns,
-    status: item.status,
+    deliveryStatus: item.delivery_status,
   }
 }
 const getProduct = (product) => {
@@ -143,6 +142,7 @@ const getProduct = (product) => {
     numOrders: product?.num_orders,
     quantity: product?.total_amount,
     normalPrice: product?.normal_price,
+    normalPriceInt: product?.product_price_num,
     instantPrice: product?.instant_price,
     modelId: product?.model_id,
     brandName: product.model?.brand.name,
@@ -170,7 +170,7 @@ const UserCartFindOne = async (cartId, userId, isOrder) => {
         model: UserCartItem,
         required: true,
         as: 'user_cart_items',
-        attributes: ['id', 'cart_id', 'amount', 'total_price', 'date_created'],
+        attributes: ['id', 'cart_id', 'amount', 'total_price', 'date_created', 'delivery_status'],
         include: [
           {
             association: 'product',
@@ -234,7 +234,12 @@ const UserCartFindOne = async (cartId, userId, isOrder) => {
 }
 
 const getUnique = (array) => {
-  return array?.map(item => item.seller_id).filter((value, index, self) => self.indexOf(value) === index)
+  let arr1 = array.map(item => item.seller_id)
+  let res1 = arr1.filter((value, index, self) => {
+    return self.indexOf(value) === index
+  })
+  return res1;
+  // return array?.map(item => item.seller_id).filter((value, index, self) => self.indexOf(value) === index)
 }
 
 const cartUpdate = async (reqBody, userId) => {

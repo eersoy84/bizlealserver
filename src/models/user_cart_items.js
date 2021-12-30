@@ -69,7 +69,12 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
-    }
+    },
+    delivery_status: {
+      type: DataTypes.ENUM('created', 'shipped', 'delivered', 'cancelled'),
+      allowNull: false,
+      defaultValue: "created"
+    },
   }, {
     sequelize,
     tableName: 'user_cart_items',

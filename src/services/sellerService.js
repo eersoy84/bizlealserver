@@ -10,7 +10,7 @@ const { formattedPrice } = require('../config/helpers')
 const getSellerList = async (userId) => {
   const userSellerAccesses = await UserSellerAccess.findAll({
     where: {
-      user_id: 23 // userId gelecek 
+      user_id: userId // userId gelecek 
     },
     include: [{
       model: Seller,

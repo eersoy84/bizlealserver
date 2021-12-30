@@ -3,7 +3,7 @@ const userService = require('./userService');
 const ApiError = require('../utils/ApiError');
 const models = require('../config/dbmodels')
 
-const { user_cart: UserCart, product_reviews: ProductReviews, user_chart_seller_ratings: SellerRatings } = models;
+const { user_cart: UserCart, user_cart_items: UserCartItems, product_reviews: ProductReviews, user_chart_seller_ratings: SellerRatings, user_cart_item_return_requests: UserCartItemReturnRequests } = models;
 
 
 const rateItem = async (reqBody) => {
@@ -19,25 +19,18 @@ const rateItem = async (reqBody) => {
   })
 };
 
-/**
- * Logout
- * @param {string} cartId
- * @param {string} sellerId
- * @param {string} ratings
- * @returns {Promise}
- */
 const rateSeller = async (reqBody) => {
   const { cartId, sellerId, ratings } = reqBody
   const cart = await UserCart.findOne({ where: { uuid: cartId } })
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Satıcıyı değerlendirken hata oluştu!")
 
-  const ratingsArray = await createRatingsArray(cart.id, sellerId, ratings);
+  const ratingsArray = createRatingsArray(cart.id, sellerId, ratings);
   await SellerRatings.bulkCreate(ratingsArray)
 };
 
-const createRatingsArray = async (id, sellerId, ratings) => {
+const createRatingsArray = (id, sellerId, ratings) => {
   var ratingsArray = [];
-  await ratings && ratings.map((item) => {
+  ratings && ratings.map((item) => {
     let arrObj = {
       cart_id: id,
       seller_id: sellerId,
@@ -46,7 +39,6 @@ const createRatingsArray = async (id, sellerId, ratings) => {
       date: Date.now()
     }
     ratingsArray.push(arrObj)
-
   })
   return ratingsArray;
 
@@ -66,8 +58,34 @@ const getRatings = async (reqBody) => {
   return;
 };
 
+const cancelProduct = async (reqBody) => {
+  const { id, notes, reasonId, returnAmount } = reqBody
+  try {
+    await UserCartItemReturnRequests.create({
+      user_cart_item_id: id,
+      return_reason_id: reasonId,
+      return_amount: returnAmount,
+      date: Date.now(),
+      status: "created",
+      notes,
+    })
+    return;
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Ürün iade işlemi sırasında hata oluştu!")
+  }
+
+}
+
+const returnProduct = async (reqBody) => {
+  const { cartId, userId, adId, comment, rating } = reqBody
+  const cart = await UserCart.findOne(cartId)
+  if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Sepetiniz Güncel Değil")
+}
+
 module.exports = {
   rateItem,
   rateSeller,
-  getRatings
+  getRatings,
+  cancelProduct,
+  returnProduct
 };
