@@ -8,6 +8,7 @@ const db = require('../config/connection');
 
 
 const ApiError = require('../utils/ApiError');
+const { getUserAddress } = require('./userService');
 
 const getAds = async (userId) => {
   return await db.query('CALL exposed_list_ads(:user_maybe)',
@@ -72,7 +73,9 @@ const unfollow = async (req) => {
 }
 
 const setAddress = async (addressbody) => {
-  const { userId, id,
+  const {
+    id,
+    userId,
     city,
     district,
     addressText,
@@ -87,8 +90,7 @@ const setAddress = async (addressbody) => {
     companyName,
     taxNumber,
     taxOffice } = addressbody;
-  console.log("addressbody", addressbody)
-  return await db.query('CALL exposed_set_address(:user_id, :user_address_id, :city, :district, :address_text, :phone, :town, :country, :first_name, :last_name, :is_corporate, :is_default, :address_title, :company_name, :tax_number, :tax_office)',
+  let result = await db.query('CALL exposed_set_address(:user_id, :user_address_id, :city, :district, :address_text, :phone, :town, :country, :first_name, :last_name, :is_corporate, :is_default, :address_title, :company_name, :tax_number, :tax_office)',
     {
       replacements: {
         user_id: userId,
@@ -109,11 +111,15 @@ const setAddress = async (addressbody) => {
         tax_office: taxOffice | null,
       }
     })
+  if (result) return result[0]
+  throw new ApiError(httpStatus.NOT_FOUND, "Adres eklerken/güncellerken bir hata oluştu!")
 };
 
 const deleteAddress = async (id) => {
-  return await db.query('CALL exposed_delete_address(:user_address_id)',
+  let result = await db.query('CALL exposed_delete_address(:user_address_id)',
     { replacements: { user_address_id: id } })
+    if(result) return result[0]
+    throw new ApiError(httpStatus.NOT_FOUND, "Böyle bir adres bulunmamaktadır!")
 };
 
 

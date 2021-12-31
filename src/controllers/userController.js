@@ -26,7 +26,7 @@ const getUser = catchAsync(async (req, res) => {
 
 const updateUser = catchAsync(async (req, res) => {
     const user = await userService.updateUserById(req.params.userId, req.body);
-    res.send(user);
+    res.status(httpStatus.OK).send(user);
 });
 
 const deleteUser = catchAsync(async (req, res) => {
@@ -39,25 +39,16 @@ const addPhone = catchAsync(async (req, res) => {
     res.status(httpStatus.NO_CONTENT).send();
 });
 const editProfile = catchAsync(async (req, res) => {
-    await userService.updateUserById(req.user.id,
-        { first_name: req.body.firstName, last_name: req.body.lastName });
-    res.status(httpStatus.OK).send("Profiliniz başarıyla güncellendi");
+    const user = await userService.updateUserById(req.user.id, req.body)
+    res.status(httpStatus.OK).send(user);
 });
 
 const getUserAddress = catchAsync(async (req, res) => {
     const addresses = await userService.getUserAddress(req.user.id);
-    if (addresses && addresses.length == 0) {
-        res.status(httpStatus.OK).send("Herhangi bir adresiniz bulunmamaktadır")
-        return;
-    }
     res.status(httpStatus.OK).send(addresses);
 });
 const getUserOrders = catchAsync(async (req, res) => {
     const orders = await userService.getUserOrders(req.user.id);
-    if (orders && orders.length == 0) {
-        res.status(httpStatus.OK).send("Herhangi bir siparişiniz bulunmamaktadır")
-        return;
-    }
     res.status(httpStatus.OK).send(orders);
 });
 

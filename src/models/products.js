@@ -76,7 +76,7 @@ const product = function (sequelize, DataTypes) {
       }
     },
     product_price_num: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.VIRTUAL,
       allowNull: false,
       get() {
         return (this.getDataValue('normal_price') / 100)

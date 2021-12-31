@@ -59,14 +59,14 @@ const getUserByEmail = async (email) => {
 const updateUserById = async (userId, updateBody) => {
   const user = await getUserByPk(userId);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir kullanıcı bulunmamaktadır!');
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
   }
   Object.assign(user, updateBody);
   await user.save();
-  return user;
+  return user.withoutPassword(user.id);
 };
 
 /**
@@ -89,11 +89,33 @@ const deleteUserById = async (userId) => {
  * @returns {Promise<UserAddress>}
  */
 const getUserAddress = async (userId) => {
-  return await UserAddress.findAll({
+  const addressArray = await UserAddress.findAll({
     where: {
       user_id: userId,
     }
   });
+  const addresses = addressArray && addressArray.map(result => {
+    return {
+      id: result.id,
+      addressTitle: result.address_title,
+      city: result.city,
+      district: result.district,
+      addressText: result.address_text,
+      phone: result.phone,
+      town: result.town,
+      country: result.country,
+      firstName: result.first_name,
+      lastName: result.last_name,
+      isCorporate: result.is_corporate,
+      isDefault: result.is_default,
+      addressTitle: result.address_title,
+      companyName: result.company_name | null,
+      taxNumber: result.tax_number | null,
+      taxOffice: result.tax_office | null,
+    }
+  });
+  return addresses
+
 };
 
 

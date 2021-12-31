@@ -21,7 +21,7 @@ const bin = {
 };
 const deleteAddress = {
   body: Joi.object().keys({
-    id: Joi.number().integer().required(),
+    id: Joi.number().integer().required().min(1),
   }),
 };
 
@@ -37,11 +37,11 @@ const setAddress = {
     firstName: Joi.string().required(),
     lastName: Joi.string().required(),
     isCorporate: Joi.number().integer().required().valid(1, 0),
-    isDefault: Joi.number().required().valid(0,1).default(0),
+    isDefault: Joi.number().required().valid(0, 1).default(0),
     addressTitle: Joi.string().required(),
-    companyName: Joi.string(),
-    taxNumber: Joi.string(),
-    taxOffice: Joi.string(),
+    companyName: Joi.string().allow('', null),
+    taxNumber: Joi.string().allow('', null),
+    taxOffice: Joi.string().allow('', null),
   }),
 };
 module.exports = {
