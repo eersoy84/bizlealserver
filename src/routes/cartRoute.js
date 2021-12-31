@@ -8,7 +8,7 @@ const { findCacheByBody } = require('../middlewares/cacheManager');
 const router = express.Router();
 
 router.get('/list', auth(), findCacheByBody(), cartController.getCartList);
-router.post('/get', auth(), findCacheByBody(), validate(cartValidation.cartGet), cartController.cartGet);
+router.post('/get', auth(), validate(cartValidation.cartGet), cartController.cartGet);
 router.post('/getBySeller', auth(), findCacheByBody(), validate(cartValidation.cartGetBySeller), cartController.cartGetBySeller);
 router.post('/update', auth(), validate(cartValidation.cartUpdate), cartController.cartUpdate);
 
