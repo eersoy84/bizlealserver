@@ -33,10 +33,13 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
 
     }
 });
-
+console.log("DIALECT", process.env.DIALECT)
+console.log("DIALECT", DIALECT)
+console.log("MASTER_DB", MASTER_DB)
+console.log("MASTER_DB", process.env.MASTER_DB)
 const initDb = async () => {
     try {
-        logger.info(`attemting to connect to "${process.env.DB_NAME}" database`)   
+        logger.info(`attemting to connect to "${process.env.DB_NAME}" database`)
         const success = await db.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\`;`)
         if (success) {
             logger.info(`Successfully connected to database: "${process.env.DB_NAME}"`)
