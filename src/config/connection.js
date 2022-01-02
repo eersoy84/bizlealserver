@@ -34,7 +34,7 @@ const db = new Sequelize(process.env.DB_NAME, null, null, {
     }
 });
 console.log("DIALECT", process.env.DIALECT)
-console.log("DIALECT", DIALECT)
+console.log("DIALECT", process.env.DB_NAME)
 console.log("MASTER_DB", MASTER_DB)
 console.log("MASTER_DB", process.env.MASTER_DB)
 const initDb = async () => {
