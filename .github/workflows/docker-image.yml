@@ -22,8 +22,8 @@ jobs:
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: docker build node js backend
       run: |
-        docker build -t eyupersoy/backend:v1.0.0 .
+        docker build -t eyupersoy/backend:v1.0.2 .
     - name: docker push to repository
       run: |
-        docker push eyupersoy/backend:v1.0.0
+        docker push eyupersoy/backend:v1.0.2
 

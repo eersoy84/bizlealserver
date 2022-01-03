@@ -3,7 +3,7 @@ const logger = require('./logger');
 const { MASTER_DB, READ_ONLY_DB, READ_PORT, WRITE_PORT } = process.env
 
 const db = new Sequelize(process.env.DB_NAME, null, null, {
-    dialect: process.env.DIALECT,
+    dialect: process.env.DIALECT || "mysql",
     operatorsAliases: Sequelize.Op,
     replication: {
         read: {
@@ -37,6 +37,7 @@ console.log("DIALECT", process.env.DIALECT)
 console.log("DIALECT", process.env.DB_NAME)
 console.log("MASTER_DB", MASTER_DB)
 console.log("MASTER_DB", process.env.MASTER_DB)
+console.log("JWT_SECRET", process.env.JWT_SECRET)
 const initDb = async () => {
     try {
         logger.info(`attemting to connect to "${process.env.DB_NAME}" database`)
