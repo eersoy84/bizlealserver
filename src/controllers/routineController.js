@@ -7,9 +7,9 @@ const { keyGeneratorByBody, getPrefix, getCustomPrefix } = require('../config/ca
 const redisClient = require('../config/redisClient');
 
 const getAds = catchAsync(async (req, res) => {
-    const result = await routineService.getAds(req.user.id);
+    const result = await routineService.getAds();
     if (result && redisClient.isConnected()) {
-        redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result), 60);
+        redisClient?.set(keyGeneratorByBody(req), JSON.stringify(result), 60);
     }
     res.send(result);
 });

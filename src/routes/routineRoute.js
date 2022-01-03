@@ -14,8 +14,8 @@ const router = express.Router();
 // router.post('/deleteAddress', validate(routineValidation.login), authController.login);
 
 
-router.get('/ads', isAuth(), findCacheByBody(), routineController.getAds); // calls exposed_list_ads()
-router.get('/ads-cdn', findCacheByBody(), routineController.getAdsCdn); // calls ads_calc()
+router.get('/ads', findCacheByBody(), routineController.getAds); // calls exposed_list_ads()
+// router.get('/ads-cdn', findCacheByBody(), routineController.getAdsCdn); // calls ads_calc()
 router.get('/instantadinfo', routineController.getInstantAdInfo); //calls exposed_instant_ad_info
 
 router.get('/favorites', auth(), findCacheByBody(), routineController.getFavorites);

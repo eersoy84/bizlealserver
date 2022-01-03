@@ -2,6 +2,8 @@ const Sequelize = require('sequelize');
 const logger = require('../config/logger');
 const product_reviews = require('./product_reviews');
 const product = function (sequelize, DataTypes) {
+  const moment = require('moment');
+
   return sequelize.define('products', {
     id: {
       autoIncrement: true,
@@ -126,6 +128,20 @@ const product = function (sequelize, DataTypes) {
     instantPrice: {
       type: DataTypes.VIRTUAL,
       allowNull: false,
+      get() {
+        return this.getDataValue('instant_price') / 100
+      }
+    },
+    is_active: {
+      type: DataTypes.VIRTUAL,
+      allowNull: false,
+      get() {
+        var endDate = this.getDataValue('end_date')
+        if (moment(Date.now() > endDate)) {
+          return false
+        }
+        return true
+      }
     },
     target_price: {
       type: DataTypes.INTEGER,

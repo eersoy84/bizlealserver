@@ -1,27 +1,122 @@
 const httpStatus = require('http-status');
 const logger = require('../config/logger')
-const models = require('../config/dbmodels')
-
-const { user_favorites: UserFavorites, user_address: UserAddress } = models;
-
+const dbModels = require('../config/dbmodels')
+const { categories: Category, brands: Brand, model: Model, user_favorites: UserFavorites, user_address: UserAddress, products: Product } = dbModels;
 const db = require('../config/connection');
-
-
+const sequelize = require('../config/connection')
 const ApiError = require('../utils/ApiError');
-const { getUserAddress } = require('./userService');
 
-const getAds = async (userId) => {
-  return await db.query('CALL exposed_list_ads(:user_maybe)',
-    { replacements: { user_maybe: userId ?? 0 } })
-};
 
-const getAdsCdn = async () => {
-  return await db.query('CALL ads_calc()')
+const getAds = async () => {
+  try {
+    return await fetchAds();
+  }
+  catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "İlanlar yüklenirken hata oluştu!")
+  }
 };
+const fetchAds = async () => {
+  const products = await Product.findAll({
+    order: [
+      ['id', 'ASC'],
+    ],
+    include: [
+      {
+        association: 'model',
+        required: false,
+        attributes: ['id', 'name'],
+        include: [
+          {
+            association: 'category',
+            required: false,
+            where: {
+              id: sequelize.col('model.category_id')
+            },
+            attributes: ['id', 'name', 'parentId']
+          },
+          {
+            association: 'brand',
+            required: false,
+            where: {
+              id: sequelize.col('model.brand_id')
+            },
+            attributes: ['id', 'name']
+          }
+        ]
+      },
+      {
+        association: 'seller_seller',
+      },
+      {
+        association: 'product_specs',
+      },
+      {
+        association: 'product_images',
+        required: false,
+        attributes: ['url']
+      },
+    ]
+  })
+  return formatProducts(products)
+}
+const formatProducts = (products) => {
+  return products && products.map(product => {
+    let images = product?.product_images?.map(image => {
+      return { url: image.url }
+    });
+    return {
+      adId: product.id,
+      modelId: product.model.id,
+      modelName: product.model.name,
+      brandId: product.model.brand.id,
+      brandName: product.model.brand.name,
+      categoryId: product.model.category.id,
+      categoryName: product.model.category.name,
+      parentId: product.model.category.parentId,
+      description: product.description,
+      endDate: product.end_date,
+      createdDate: product.start_date,
+      isActive: product.is_active,
+      maxDiscountPercent: product.max_discount,
+      maxParticipants: product.max_amount,
+      minParticipants: product.min_amount,
+      targetPrice: product.target_price / 100,
+      quantity: product?.total_amount,
+      downpayment: product?.downpayment / 100,
+      productPrice: product?.product_price_num,
+      sellerId: product?.seller_seller?.id,
+      sellerName: product.seller_seller?.name,
+      sellerLogo: product.seller_seller?.marketplace_logo,
+      sellerMarketPlaceName: product?.seller_seller?.marketplace_name,
+      specs: product.product_specs,
+      imageUrl: product && product.product_images && product?.product_images[0]?.url,
+      images,
+    }
+  })
+
+}
 
 const getInstantAdInfo = async () => {
-  return await db.query('CALL exposed_instant_ad_info()')
+  try {
+    const products = await Product.findAll()
+    return fetchInstantAdInfo(products);
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Anlık Fiyatlar Yüklenirken Hata Oluştu!")
+  }
+
 };
+const fetchInstantAdInfo = (products) => {
+  return products && products.map(product => {
+    return {
+      adId: product.id,
+      numOrders: product.num_orders,
+      instantDiscountPercent: product.instant_discount_percent,
+      instantPrice: product.instantPrice,
+      participants: product.participants
+    }
+  })
+
+}
 
 const getFavorites = async (userId) => {
   const favorites = await UserFavorites.findAll({
@@ -118,14 +213,15 @@ const setAddress = async (addressbody) => {
 const deleteAddress = async (id) => {
   let result = await db.query('CALL exposed_delete_address(:user_address_id)',
     { replacements: { user_address_id: id } })
-    if(result) return result[0]
-    throw new ApiError(httpStatus.NOT_FOUND, "Böyle bir adres bulunmamaktadır!")
+  if (result) return result[0]
+  throw new ApiError(httpStatus.NOT_FOUND, "Böyle bir adres bulunmamaktadır!")
 };
+
+
 
 
 module.exports = {
   getAds,
-  getAdsCdn,
   getInstantAdInfo,
   getFavorites,
   getBin,
