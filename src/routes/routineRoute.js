@@ -11,7 +11,6 @@ const { findCacheByBody } = require('../middlewares/cacheManager');
 
 const router = express.Router();
 
-// router.post('/deleteAddress', validate(routineValidation.login), authController.login);
 
 
 router.get('/ads', findCacheByBody(), routineController.getAds); // calls exposed_list_ads()
