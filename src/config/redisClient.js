@@ -2,11 +2,12 @@ const logger = require('./logger')
 var redis = require('redis');
 const { REDIS_HOST, REDIS_PORT } = process.env
 const async = require('async');
-const { reject } = require('lodash');
 const client = redis?.createClient({
     port: REDIS_PORT,
     host: REDIS_HOST,
 });
+console.log(process.env.REDIS_HOST)
+console.log(process.env.REDIS_PORT)
 
 client?.on('connect', function () {
     logger.info(`Redis database connected\n`)
@@ -27,15 +28,15 @@ client?.on('end', function () {
     logger.info(`Redis client disconnected`)
 });
 
-const set = async (key, value, minutes) => {
+const set = async (key, value, seconds) => {
     let result = new Promise((resolve, reject) => {
         client.set(key, value, (err, res) => {
             if (err) {
                 logger.error(err)
                 reject(err)
             }
-            if (minutes && minutes > 0)
-                client.expire(key, 60 * minutes)
+            if (seconds && seconds > 0)
+                client.expire(key, 60 * seconds)
             resolve(res);
         })
     })

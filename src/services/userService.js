@@ -112,6 +112,7 @@ const getUserAddress = async (userId) => {
       companyName: result.company_name | null,
       taxNumber: result.tax_number | null,
       taxOffice: result.tax_office | null,
+      hidden: result.hidden
     }
   });
   return addresses

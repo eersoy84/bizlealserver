@@ -1,7 +1,10 @@
 const httpStatus = require('http-status');
 const logger = require('../config/logger')
 const dbModels = require('../config/dbmodels')
-const { User, user_cart: UserCart, user_cart_items: UserCartItem, products: Product, product_questions: ProductQuestion } = dbModels;
+const { User, user_cart: UserCart, user_cart_items: UserCartItem,
+  products: Product, product_questions: ProductQuestion, return_reasons: ReturnReasons,
+  rating_values: RatingValues
+} = dbModels;
 const sequelize = require('../config/connection')
 const ApiError = require('../utils/ApiError');
 const seller = require('../models/seller');
@@ -370,19 +373,25 @@ const getCartList = async (userId) => {
   })
   return userCartsAll;
 }
-const askQuestion = async (reqBody, userId) => {
-  const { adId, question } = reqBody;
-  await ProductQuestion.create({
-    user_id: userId,
-    product_id: adId,
-    user_question: question,
-    user_question_date: Date.now(),
-    seller_answer: null,
-    seller_answer_date: null,
-    question_approved: 0,
-    answer_approved: 0
+
+
+const getReturnReasons = async () => {
+  const reasons = await ReturnReasons.findAll();
+  if (!reasons) throw new ApiError(httpStatus.BAD_REQUEST, "Hata oluştu!")
+  return reasons.map(reason => {
+    return {
+      id: reason.id,
+      reasonText: reason.reason_text,
+      commentRequired: reason.comment_required,
+      formtype: reason.formType
+    }
   })
 
+}
+const getRatingForm = async () => {
+  const ratingValues = await RatingValues.findAll();
+  if (!ratingValues) throw new ApiError(httpStatus.BAD_REQUEST, "Hata oluştu!")
+  return ratingValues
 }
 
 module.exports = {
@@ -390,5 +399,6 @@ module.exports = {
   cartUpdate,
   getCartList,
   cartGetBySeller,
-  askQuestion
+  getReturnReasons,
+  getRatingForm
 };

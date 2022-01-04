@@ -2,10 +2,12 @@ const express = require('express');
 const validate = require('../middlewares/validate');
 const itemValidation = require('../validations/itemValidation');
 const auth = require('../middlewares/auth');
-const itemController = require('../controllers/itemController')
+const itemController = require('../controllers/itemController');
+const { findCacheByBody } = require('../middlewares/cacheManager');
 
 const router = express.Router();
 
+router.post('/questions', findCacheByBody(), validate(itemValidation.getQuestions), itemController.getQuestions);
 router.post('/askQuestion', auth(), validate(itemValidation.askQuestion), itemController.askQuestion);
 
 module.exports = router;

@@ -31,9 +31,27 @@ const getCartList = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const getReturnReasons = catchAsync(async (req, res) => {
+  const result = await cartService.getReturnReasons();
+  if (result && redisClient.isConnected()) {
+    redisClient?.set(keyGeneratorByBody(req, null), JSON.stringify(result));
+  }
+  res.status(httpStatus.OK).send(result);
+});
+
+const getRatingForm = catchAsync(async (req, res) => {
+  const result = await cartService.getRatingForm();
+  if (result && redisClient.isConnected()) {
+    redisClient?.set(keyGeneratorByBody(req, null), JSON.stringify(result));
+  }
+  res.status(httpStatus.OK).send(result);
+});
+
 module.exports = {
   cartGet,
   cartUpdate,
   getCartList,
-  cartGetBySeller
+  cartGetBySeller,
+  getReturnReasons,
+  getRatingForm
 };

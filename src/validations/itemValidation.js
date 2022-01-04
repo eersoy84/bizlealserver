@@ -7,7 +7,13 @@ const askQuestion = {
   }),
 };
 
+const getQuestions = {
+  body: Joi.object().keys({
+    adId: Joi.number().integer().required().min(0),
+  }),
+};
 
 module.exports = {
   askQuestion,
+  getQuestions,
 };

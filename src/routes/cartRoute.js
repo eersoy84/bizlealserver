@@ -12,6 +12,9 @@ router.post('/get', auth(), validate(cartValidation.cartGet), cartController.car
 router.post('/getBySeller', auth(), findCacheByBody(), validate(cartValidation.cartGetBySeller), cartController.cartGetBySeller);
 router.post('/update', auth(), validate(cartValidation.cartUpdate), cartController.cartUpdate);
 
+router.get('/return-reasons', findCacheByBody(), cartController.getReturnReasons);
+router.get('/rating-form', findCacheByBody(), cartController.getRatingForm);
+
 
 
 module.exports = router;
