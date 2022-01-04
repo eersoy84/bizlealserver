@@ -2,6 +2,7 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { itemService } = require('../services');
 const redisClient = require('../config/redisClient');
+const { keyGeneratorByBody, getCustomPrefix } = require('../config/cacheKeyGenerator');
 
 const getQuestions = catchAsync(async (req, res) => {
   let result = await itemService.getQuestions(req.body);
