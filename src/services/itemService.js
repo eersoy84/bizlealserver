@@ -39,19 +39,13 @@ const getFormattedQuestions = (questions) => {
   return questions.map(question => {
     return {
       id: question.id,
-      userName: formatUserName(question.user),
+      userName: mask(question.user),
       question: question.user_question,
       questionDate: question.user_question_date,
       answer: question.seller_answer,
       answerDate: question.seller_answer_date
     }
   })
-}
-
-const formatUserName = (user) => {
-  let name = `${user.firstName} ${user.lastName}`
-  let maskedName = name.replace(name.substring(1, name.length - 1), "****")
-  return maskedName
 }
 
 const getReviews = async (reqBody) => {
@@ -73,13 +67,23 @@ const getFormattedReviews = (reviews) => {
   return reviews.map(review => {
     return {
       id: review.id,
-      userName: formatUserName(review.user),
+      userName: mask(review.user),
       content: review.review_content,
       star: review.review_stars,
       date: review.review_date,
     }
   })
 }
+
+const mask = (user) => {
+  let firstName = user.firstName
+  let lastName = user.lastName
+  firstName = firstName.replace(firstName.slice(1, - 1), "***")
+  lastName = lastName.replace(lastName.slice(1, - 1), "***")
+  return `${firstName} ${lastName}`
+}
+
+
 
 module.exports = {
   askQuestion,
