@@ -35,7 +35,7 @@ module.exports = function (sequelize, DataTypes) {
       defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       get() {
         var date = this.getDataValue('user_question_date')
-        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, h:mm a')
+        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, HH:MM')
         else return null
       },
     },
@@ -48,7 +48,7 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: true,
       get() {
         var date = this.getDataValue('seller_answer_date')
-        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, h:mm a')
+        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, HH:MM')
         else return null
       }
     },

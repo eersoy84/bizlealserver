@@ -63,7 +63,7 @@ const UserCart = function (sequelize, DataTypes) {
     dateCreated: {
       type: DataTypes.VIRTUAL,
       get() {
-        return moment(this.getDataValue('date_created')).locale('tr').format('Do MMMM, YYYY, h:mm a');
+        return moment(this.getDataValue('date_created')).locale('tr').format('Do MMMM, YYYY, HH:MM');
       },
     },
     datePassed: {

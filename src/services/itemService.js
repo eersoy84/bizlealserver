@@ -1,13 +1,13 @@
 const httpStatus = require('http-status');
 const logger = require('../config/logger')
 const dbModels = require('../config/dbmodels')
-const { product_questions: ProductQuestion, User } = dbModels;
+const { product_questions: ProductQuestion, User, product_reviews: ProductReviews } = dbModels;
 const ApiError = require('../utils/ApiError');
 
 
 const askQuestion = async (reqBody, userId) => {
   const { adId, question } = reqBody;
-  await ProductQuestion.create({
+  let result = await ProductQuestion.create({
     user_id: userId,
     product_id: adId,
     user_question: question,
@@ -17,7 +17,8 @@ const askQuestion = async (reqBody, userId) => {
     question_approved: 0,
     answer_approved: 0
   })
-
+  if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Sorular getirilirken hata oluştu!")
+  return result
 }
 
 const getQuestions = async (reqBody) => {
@@ -53,9 +54,35 @@ const formatUserName = (user) => {
   return maskedName
 }
 
+const getReviews = async (reqBody) => {
+  const { adId } = reqBody;
+  let reviews = await ProductReviews.findAll({
+    where: {
+      product_id: adId,
+      review_approved: 1
+    },
+    include: [{
+      association: 'user'
+    }]
+  })
+  if (!reviews) throw new ApiError(httpStatus.BAD_REQUEST, "Sorular getirilirken hata oluştu!")
+  return getFormattedReviews(reviews)
+}
 
+const getFormattedReviews = (reviews) => {
+  return reviews.map(review => {
+    return {
+      id: review.id,
+      userName: formatUserName(review.user),
+      content: review.review_content,
+      star: review.review_stars,
+      date: review.review_date,
+    }
+  })
+}
 
 module.exports = {
   askQuestion,
   getQuestions,
+  getReviews
 };

@@ -1,4 +1,6 @@
 const Sequelize = require('sequelize');
+const moment = require('moment');
+
 module.exports = function(sequelize, DataTypes) {
   return sequelize.define('product_reviews', {
     id: {
@@ -34,7 +36,12 @@ module.exports = function(sequelize, DataTypes) {
     review_date: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP')
+      defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
+      get() {
+        var date = this.getDataValue('review_date')
+        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, HH:MM')
+        else return null
+      },
     },
     review_approved: {
       type: DataTypes.INTEGER,

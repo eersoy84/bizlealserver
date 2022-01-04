@@ -37,7 +37,6 @@ const getFavorites = catchAsync(async (req, res) => {
 
 const follow = catchAsync(async (req, res) => {
     const result = await routineService.follow(req);
-    console.log("result follow", result)
     if (result && redisClient.isConnected()) {
         await redisClient?.deleteWithPrefix(getCustomPrefix(req.baseUrl, "/favorites", req.user.id));
     }

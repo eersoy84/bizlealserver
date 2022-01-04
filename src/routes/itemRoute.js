@@ -8,6 +8,7 @@ const { findCacheByBody } = require('../middlewares/cacheManager');
 const router = express.Router();
 
 router.post('/questions', findCacheByBody(), validate(itemValidation.getQuestions), itemController.getQuestions);
+router.post('/reviews', findCacheByBody(), validate(itemValidation.getReviews), itemController.getReviews);
 router.post('/askQuestion', auth(), validate(itemValidation.askQuestion), itemController.askQuestion);
 
 module.exports = router;

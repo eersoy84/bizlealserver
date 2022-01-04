@@ -45,12 +45,25 @@ const getCustomPrefix = (baseUrl, path, userId) => {
     console.log("prefix", prefix)
     return prefix;
 }
-
+const getCustomPrefixWithParams = (baseUrl, path, params, userId) => {
+    var prefix = `${baseUrl}${path}*`;
+    if (userId) {
+        prefix += `.userId-{${userId}}*`
+    }
+    return getParams(prefix, params)
+}
+const getParams = (prefix, params) => {
+    for (const [key, value] of Object.entries(params)) {
+        prefix += `.${key}-{${value}}*`
+    }
+    return prefix
+}
 
 module.exports = {
     keyGeneratorByQuery,
     keyGeneratorByBody,
     getPrefix,
     getPrefixWithoutUrl,
-    getCustomPrefix
+    getCustomPrefix,
+    getCustomPrefixWithParams
 }
