@@ -8,3 +8,4 @@ module.exports.orderService = require('./orderService');
 module.exports.cartService = require('./cartService');
 module.exports.sellerService = require('./sellerService');
 module.exports.itemService = require('./itemService');
+module.exports.iyzicoService = require('./iyzicoService');

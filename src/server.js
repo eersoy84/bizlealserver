@@ -14,7 +14,6 @@ const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const path = require('path');
 const fs = require('fs/promises')
-const BCrypt = require('bcrypt')
 
 const app = express();
 
@@ -65,10 +64,6 @@ app.get('/loaderio-304ff6a00b644e779082c6647571f070.txt', async (req, res) => {
   res.status(200).send(data)
 });
 
-app.get('/bcrypt', async (req, res) => {
-  const hash = await BCrypt.hash('abcdefesdfsd', 8)
-  res.status(200).send(hash)
-})
 // v1 api routes
 app.use('/api', routes);
 

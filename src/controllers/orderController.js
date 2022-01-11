@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { authService, orderService, tokenService, emailService } = require('../services');
+const { redirect_url } = require('../config/iyzipay')
 
 const rateItem = catchAsync(async (req, res) => {
   await orderService.rateItem({ ...req.body, userId: req.user.id });
@@ -27,12 +28,24 @@ const returnProduct = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send();
 });
 
+const createOrder = catchAsync(async (req, res) => {
+  const callback = (result) => res.status(httpStatus.CREATED).send(result)
+  await orderService.createOrder(req.body, req.user.id, callback);
+})
 
+const retrieveOrder = catchAsync(async (req, res) => {
+  const fn = (orderId) => {
+    res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
+  }
+  orderService.retrieveOrder(req.body.token, req.query, fn);
+})
 
 module.exports = {
   rateItem,
   rateSeller,
   getRatings,
   cancelProduct,
-  returnProduct
+  returnProduct,
+  createOrder,
+  retrieveOrder
 };

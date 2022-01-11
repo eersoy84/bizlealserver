@@ -2,7 +2,7 @@ const validator = require('validator');
 const bcrypt = require('bcrypt');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
-
+const moment = require('moment');
 const Sequelize = require('sequelize');
 
 const hashPassword = async (user) => {
@@ -71,7 +71,12 @@ module.exports = function (sequelize, DataTypes) {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-        comment: "hidden"
+        comment: "hidden",
+        get() {
+          var date = this.getDataValue('created_date')
+          if (date) return moment(date).format('YYYY-MM-DD hh:mm:ss')
+          else return null
+        },
       },
       created_ip: {
         type: DataTypes.STRING(64),

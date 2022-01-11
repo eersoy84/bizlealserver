@@ -47,6 +47,13 @@ module.exports = function (sequelize, DataTypes) {
 
       }
     },
+    totalPrice: {
+      type: DataTypes.VIRTUAL,
+      allowNull: true,
+      get() {
+        return this.getDataValue('total_price') / 100
+      }
+    },
     payment_id: {
       type: DataTypes.STRING(32),
       allowNull: true,

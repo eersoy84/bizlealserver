@@ -21,7 +21,7 @@ const isConnected = () => {
 }
 
 client?.on('error', function (err) {
-    logger.error(`REDIS ERROR: ${err.message}`)
+    // logger.error(`REDIS ERROR: ${err.message}`)
 });
 
 client?.on('end', function () {

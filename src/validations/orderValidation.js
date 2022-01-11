@@ -47,6 +47,15 @@ const returnProduct = {
   }),
 };
 
+const createOrder = {
+  body: Joi.object().keys({
+    id: Joi.number().integer().required(),
+    shippingAddressId: Joi.number().integer().required(),
+    billingAddressId: Joi.number().integer().required(),
+  }),
+};
+
+
 
 
 
@@ -56,5 +65,6 @@ module.exports = {
   rateItem,
   rateSeller,
   cancelProduct,
-  returnProduct
+  returnProduct,
+  createOrder
 };

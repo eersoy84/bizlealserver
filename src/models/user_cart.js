@@ -46,6 +46,13 @@ const UserCart = function (sequelize, DataTypes) {
       //   this.setDataValue('sub_total', value)
       // }
     },
+    subTotal: {
+      type: DataTypes.VIRTUAL,
+      allowNull: true,
+      get() {
+        return this.getDataValue('sub_total') / 100
+      },
+    },
     total_tax: {
       type: DataTypes.INTEGER,
       allowNull: false,
