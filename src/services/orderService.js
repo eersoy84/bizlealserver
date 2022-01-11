@@ -118,7 +118,6 @@ const createOrder = async (reqBody, userId, cb) => {
       }]
     }
   )
-  console.log("url", url)
   if(!cart)  throw new ApiError(httpStatus.BAD_REQUEST, "Sepetiniz güncel değil")
   iyzicoService.createOrderRequest(formatOrder(cart), cb);
 }
