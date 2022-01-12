@@ -50,7 +50,10 @@ const getCustomPrefixWithParams = (baseUrl, path, params, userId) => {
     if (userId) {
         prefix += `.userId-{${userId}}*`
     }
-    return getParams(prefix, params)
+    if (params) {
+        return getParams(prefix, params)
+    }
+    return prefix
 }
 const getParams = (prefix, params) => {
     for (const [key, value] of Object.entries(params)) {

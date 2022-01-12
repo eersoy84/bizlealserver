@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { authService, orderService, tokenService, emailService } = require('../services');
-const { redirect_url } = require('../config/iyzipay')
+const { redirect_url } = require('../config/iyzipay');
+const ApiError = require('../utils/ApiError');
 
 const rateItem = catchAsync(async (req, res) => {
   await orderService.rateItem({ ...req.body, userId: req.user.id });
@@ -35,6 +36,9 @@ const createOrder = catchAsync(async (req, res) => {
 
 const retrieveOrder = catchAsync(async (req, res) => {
   const fn = (orderId) => {
+    if (!orderId) {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme esnasında bir hata oluştu!")
+    }
     res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
   }
   orderService.retrieveOrder(req.body.token, req.query, fn);
