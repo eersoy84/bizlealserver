@@ -34,7 +34,6 @@ const getPrefix = (req, userId) => {
     if (userId) {
         prefix += `.userId-{${userId}}*`
     }
-    console.log("prefix", req.baseUrl, req.url)
     return prefix;
 }
 const getCustomPrefix = (baseUrl, path, userId) => {
@@ -42,7 +41,6 @@ const getCustomPrefix = (baseUrl, path, userId) => {
     if (userId) {
         prefix += `.userId-{${userId}}*`
     }
-    console.log("prefix", prefix)
     return prefix;
 }
 const getCustomPrefixWithParams = (baseUrl, path, params, userId) => {

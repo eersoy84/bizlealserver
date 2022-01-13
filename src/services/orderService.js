@@ -83,7 +83,7 @@ const returnProduct = async (reqBody, userId) => {
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Sepetiniz Güncel Değil")
 }
 
-const createOrder = async (reqBody, userId, cb) => {
+const createOrder = async (reqBody, userId) => {
   const { id, shippingAddressId, billingAddressId } = reqBody
   const cart = await UserCart.findOne(
     {
@@ -118,8 +118,8 @@ const createOrder = async (reqBody, userId, cb) => {
       }]
     }
   )
-  if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Sepetiniz güncel değil")
-  iyzicoService.createOrderRequest(formatOrder(cart), cb);
+  if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir sipariş bulunmamaktadır!")
+  return await iyzicoService.createOrderRequest(formatOrder(cart));
 }
 
 const formatOrder = (cart) => {
@@ -197,29 +197,27 @@ const formatOrder = (cart) => {
 
 }
 
-const retrieveOrder = async (token, params, callback) => {
+const retrieveOrder = async (token, params) => {
   const { shippingId, billingId } = params
   let request = {
     locale: Iyzipay.LOCALE.TR,
     token
   }
-  const cb = async (result) => {
-    let orderId = result.basketId;
-    let paymentId = result.paymentId
-    const Order = await UserCart.findOne({
-      where: {
-        uuid: orderId
-      }
-    })
-    await Order.update({
-      payment_id: paymentId,
-      address_id: parseInt(shippingId),
-      invoice_id: parseInt(billingId),
-      status: "paid"
-    })
-    callback(orderId)
-  }
-  iyzicoService.createRetrieveOrder(request, cb)
+  let result = await iyzicoService.createRetrieveOrder(request)
+  let orderId = result.basketId;
+  let paymentId = result.paymentId
+  const Order = await UserCart.findOne({
+    where: {
+      uuid: orderId
+    }
+  })
+  await Order.update({
+    payment_id: paymentId,
+    address_id: parseInt(shippingId),
+    invoice_id: parseInt(billingId),
+    status: "paid"
+  })
+  return orderId
 }
 
 module.exports = {

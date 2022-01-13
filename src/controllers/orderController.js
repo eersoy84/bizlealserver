@@ -30,18 +30,13 @@ const returnProduct = catchAsync(async (req, res) => {
 });
 
 const createOrder = catchAsync(async (req, res) => {
-  const callback = (result) => res.status(httpStatus.CREATED).send(result)
-  await orderService.createOrder(req.body, req.user.id, callback);
+  const result = await orderService.createOrder(req.body, req.user.id);
+  res.status(httpStatus.CREATED).send(result)
 })
 
 const retrieveOrder = catchAsync(async (req, res) => {
-  const fn = (orderId) => {
-    if (!orderId) {
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme esnasında bir hata oluştu!")
-    }
-    res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
-  }
-  orderService.retrieveOrder(req.body.token, req.query, fn);
+  const orderId = await orderService.retrieveOrder(req.body.token, req.query);
+  res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
 })
 
 module.exports = {

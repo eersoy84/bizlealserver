@@ -13,7 +13,19 @@ const login = catchAsync(async (req, res) => {
   const token = await tokenService.generateAuthTokens(user);
   res.send({ user, token });
 });
+const googleLogin = catchAsync(async (req, res) => {
+  const { code } = req.body;
+  const user = await authService.googleLogin(code, req.socket.remoteAddress)
+  const token = await tokenService.generateAuthTokens(user)
+  res.send({ user, token });
+});
 
+const facebookLogin = catchAsync(async (req, res) => {
+  const { code } = req.body;
+  const user = await authService.facebookLogin(code, req.socket.remoteAddress)
+  const token = await tokenService.generateAuthTokens(user)
+  res.send({ user, token });
+});
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
   res.status(httpStatus.NO_CONTENT).send();
@@ -55,4 +67,6 @@ module.exports = {
   updatePassword,
   sendVerificationEmail,
   verifyEmail,
+  googleLogin,
+  facebookLogin
 };

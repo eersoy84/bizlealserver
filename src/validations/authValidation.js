@@ -41,6 +41,17 @@ const verifyEmail = {
     token: Joi.string().required(),
   }),
 };
+const googleLogin = {
+  body: Joi.object().keys({
+    code: Joi.string().required(),
+  }),
+};
+const facebookLogin = {
+  body: Joi.object().keys({
+    code: Joi.string().required(),
+  }),
+};
+
 
 module.exports = {
   register,
@@ -49,4 +60,6 @@ module.exports = {
   forgotPassword,
   updatePassword,
   verifyEmail,
+  googleLogin,
+  facebookLogin
 };

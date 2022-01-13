@@ -4,7 +4,9 @@ const userService = require('./userService');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
 const logger = require('../config/logger')
-
+const googleClient = require('../config/googleAuth')
+const models = require('../config/dbmodels');
+const { User } = models;
 /**
  * Login with username and password
  * @param {string} email
@@ -18,6 +20,37 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   }
   return user.withoutPassword(user.id);
 };
+const googleLogin = async (code, ip) => {
+  const { payload } = await googleClient.verifyIdToken({
+    idToken: code,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  })
+  if (!payload) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Google\'a kayıtlı böyle bir kullanıcı bulunamamıştır!');
+  }
+  const user = await userService.getUserByEmail(payload.email)
+  if (!user) {
+    let user = await User.create({
+      email: payload.email,
+      phone: payload.phone || null,
+      email_confirmed: payload.email_verified ? 1 : 0,
+      firstName: payload.given_name,
+      lastName: payload.family_name,
+      image: payload.picture,
+      created_date: Date.now(),
+      created_ip: ip,
+      password: null
+    })
+    return user.withoutPassword(user.id)
+  }
+  return user.withoutPassword(user.id)
+}
+const facebookLogin = async (code) => {
+  const user = await googleClient.verifyIdToken({
+    idToken: code,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  })
+}
 
 /**
  * Logout
@@ -94,4 +127,6 @@ module.exports = {
   refreshAuth,
   updatePassword,
   verifyEmail,
+  googleLogin,
+  facebookLogin
 };

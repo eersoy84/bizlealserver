@@ -2,16 +2,18 @@ const { iyzipay } = require('../config/iyzipay')
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 
-const createOrderRequest = (request, callback) => {
-    iyzipay.checkoutFormInitialize.create(request, (err, result) => {
-        if (err) {
-            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
-        }
-        if (result.status === 'failure') {
-            throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-        }
-        callback(result)
-    });
+const createOrderRequest = (request) => {
+    return new Promise((resolve) => {
+        iyzipay.checkoutFormInitialize.create(request, (err, result) => {
+            if (err) {
+                throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
+            }
+            if (result.status === 'failure') {
+                throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
+            }
+            resolve(result)
+        });
+    })
 }
 
 
@@ -38,16 +40,19 @@ const approveSubMerchant = (request, callback) => {
         callback(result)
     });
 }
-const createRetrieveOrder = (request, callback) => {
-    iyzipay.checkoutForm.retrieve(request, (err, result) => {
-        if (err) {
-            throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
-        }
-        if (result.status === 'failure') {
-            throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-        }
-        callback(result)
-    });
+const createRetrieveOrder = (request) => {
+    return new Promise((resolve) => {
+        iyzipay.checkoutForm.retrieve(request, (err, result) => {
+            if (err) {
+                // reject()
+                throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
+            }
+            if (result.status === 'failure') {
+                throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
+            }
+            resolve(result)
+        });
+    })
 }
 
 

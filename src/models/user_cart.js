@@ -41,10 +41,6 @@ const UserCart = function (sequelize, DataTypes) {
         return formattedPrice;
 
       },
-      // set(value) {
-      //   console.log("setter icinde", this.sub_total)
-      //   this.setDataValue('sub_total', value)
-      // }
     },
     subTotal: {
       type: DataTypes.VIRTUAL,
@@ -62,10 +58,6 @@ const UserCart = function (sequelize, DataTypes) {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
-      // get() {
-      //   // console.log(this.date_created)
-      //   return moment(this.getDataValue('date_created')).locale('tr').format('Do MMMM, YYYY, h:mm a');
-      // }
     },
     dateCreated: {
       type: DataTypes.VIRTUAL,

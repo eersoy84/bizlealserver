@@ -5,8 +5,13 @@ const { roles } = require('../config/roles');
 const moment = require('moment');
 const Sequelize = require('sequelize');
 
-const hashPassword = async (user) => {
+const updateHash = async (user) => {
   if (!user.changed('password')) return
+  var hash = await bcrypt.hash(user.password, 8)
+  return user.setDataValue('password', hash)
+}
+const createHash = async (user) => {
+  if (!user.password) return
   var hash = await bcrypt.hash(user.password, 8)
   return user.setDataValue('password', hash)
 }
@@ -95,8 +100,8 @@ module.exports = function (sequelize, DataTypes) {
     },
     {
       hooks: {
-        beforeCreate: hashPassword,
-        beforeUpdate: hashPassword
+        beforeCreate: createHash,
+        beforeUpdate: updateHash
       },
       sequelize,
       tableName: 'users',

@@ -6,8 +6,6 @@ const client = redis?.createClient({
     port: REDIS_PORT,
     host: REDIS_HOST,
 });
-console.log(process.env.REDIS_HOST)
-console.log(process.env.REDIS_PORT)
 
 client?.on('connect', function () {
     logger.info(`Redis database connected\n`)
