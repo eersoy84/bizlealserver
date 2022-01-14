@@ -8,6 +8,7 @@ const googleClient = require('../config/googleAuth')
 const models = require('../config/dbmodels');
 const { User } = models;
 const queryString = require('query-string');
+const { redirect_url } = require('../config/iyzipay');
 
 /**
  * Login with username and password
@@ -50,7 +51,7 @@ const googleLogin = async (code, ip) => {
 const facebookLogin = async (code, ip) => {
   const stringifiedParams = queryString.stringify({
     client_id: process.env.FACEBOOK_APP_ID,
-    redirect_uri: 'https://localhost:5000/hesapa/cikis/1',
+    redirect_uri: `${redirect_url}/hesap/cikis/1`,
     scope: ['email'].join(','), // comma seperated string
     response_type: 'code',
     auth_type: 'rerequest',
