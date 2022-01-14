@@ -7,6 +7,8 @@ const logger = require('../config/logger')
 const googleClient = require('../config/googleAuth')
 const models = require('../config/dbmodels');
 const { User } = models;
+const queryString = require('query-string');
+
 /**
  * Login with username and password
  * @param {string} email
@@ -45,11 +47,17 @@ const googleLogin = async (code, ip) => {
   }
   return user.withoutPassword(user.id)
 }
-const facebookLogin = async (code) => {
-  const user = await googleClient.verifyIdToken({
-    idToken: code,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  })
+const facebookLogin = async (code, ip) => {
+  const stringifiedParams = queryString.stringify({
+    client_id: process.env.FACEBOOK_APP_ID,
+    redirect_uri: 'https://localhost:5000/hesapa/cikis/1',
+    scope: ['email'].join(','), // comma seperated string
+    response_type: 'code',
+    auth_type: 'rerequest',
+    display: 'popup',
+  });
+  const facebookLoginUrl = `https://www.facebook.com/v4.0/dialog/oauth?${stringifiedParams}`;
+  return facebookLoginUrl
 }
 
 /**

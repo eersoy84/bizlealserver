@@ -1,7 +1,6 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
 const { authService, userService, tokenService, emailService } = require('../services');
-
 const register = catchAsync(async (req, res) => {
   await userService.createUser({ ...req.body, created_ip: req.socket.remoteAddress });
   res.status(httpStatus.CREATED).send();
@@ -21,10 +20,8 @@ const googleLogin = catchAsync(async (req, res) => {
 });
 
 const facebookLogin = catchAsync(async (req, res) => {
-  const { code } = req.body;
-  const user = await authService.facebookLogin(code, req.socket.remoteAddress)
-  const token = await tokenService.generateAuthTokens(user)
-  res.send({ user, token });
+  const result = await authService.facebookLogin()
+  res.send(result);
 });
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
