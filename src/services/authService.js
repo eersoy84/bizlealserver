@@ -24,6 +24,7 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   return user.withoutPassword(user.id);
 };
 const googleLogin = async (code, ip) => {
+  logger.info(`google client id: ${process.env.GOOGLE_CLIENT_ID}`)
   const { payload } = await googleClient.verifyIdToken({
     idToken: code,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -49,6 +50,7 @@ const googleLogin = async (code, ip) => {
   return user.withoutPassword(user.id)
 }
 const facebookLogin = async (code, ip) => {
+  logger.info(`facebook app id: ${process.env.FACEBOOK_APP_ID}`)
   const stringifiedParams = queryString.stringify({
     client_id: process.env.FACEBOOK_APP_ID,
     redirect_uri: `${redirect_url}/hesap/cikis/1`,
@@ -57,8 +59,7 @@ const facebookLogin = async (code, ip) => {
     auth_type: 'rerequest',
     display: 'popup',
   });
-  const facebookLoginUrl = `https://www.facebook.com/v4.0/dialog/oauth?${stringifiedParams}`;
-  return facebookLoginUrl
+  return `https://www.facebook.com/v12.0/dialog/oauth?${stringifiedParams}`;
 }
 
 /**
