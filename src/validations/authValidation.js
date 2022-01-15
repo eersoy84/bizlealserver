@@ -48,7 +48,8 @@ const googleLogin = {
 };
 const facebookLogin = {
   body: Joi.object().keys({
-    code: Joi.string().required(),
+    accessToken: Joi.string().required(),
+    userId: Joi.string().required(),
   }),
 };
 

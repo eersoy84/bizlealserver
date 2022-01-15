@@ -7,9 +7,8 @@ const logger = require('../config/logger')
 const googleClient = require('../config/googleAuth')
 const models = require('../config/dbmodels');
 const { User } = models;
-const queryString = require('query-string');
 const { redirect_url } = require('../config/iyzipay');
-
+const axios = require('axios')
 /**
  * Login with username and password
  * @param {string} email
@@ -24,7 +23,6 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   return user.withoutPassword(user.id);
 };
 const googleLogin = async (code, ip) => {
-  logger.info(`google client id: ${process.env.GOOGLE_CLIENT_ID}`)
   const { payload } = await googleClient.verifyIdToken({
     idToken: code,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -49,17 +47,30 @@ const googleLogin = async (code, ip) => {
   }
   return user.withoutPassword(user.id)
 }
-const facebookLogin = async (code, ip) => {
-  logger.info(`facebook app id: ${process.env.FACEBOOK_APP_ID}`)
-  const stringifiedParams = queryString.stringify({
-    client_id: process.env.FACEBOOK_APP_ID,
-    redirect_uri: `${redirect_url}/hesap/cikis/1`,
-    scope: ['email'].join(','), // comma seperated string
-    response_type: 'code',
-    auth_type: 'rerequest',
-    display: 'popup',
-  });
-  return `https://www.facebook.com/v12.0/dialog/oauth?${stringifiedParams}`;
+const facebookLogin = async (reqBody, ip) => {
+  const { accessToken, userId } = reqBody;
+  let urlGraphFacebook = `https://graph.facebook.com/v12.0/${userId}?fields=first_name,last_name,email,picture&access_token=${accessToken}`
+  try {
+    let response = await axios.get(urlGraphFacebook)
+    const { first_name, last_name, email, picture } = response.data
+    const user = await userService.getUserByEmail(email)
+    if (!user) {
+      let user = await User.create({
+        email: email,
+        email_confirmed: 1,
+        firstName: first_name,
+        lastName: last_name,
+        image: picture?.data?.url,
+        created_date: Date.now(),
+        created_ip: ip,
+        password: null
+      })
+      return user.withoutPassword(user.id)
+    }
+    return user.withoutPassword(user.id)
+  } catch (err) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Facebook\'a kayıtlı böyle bir kullanıcı bulunmamaktadır!');
+  }
 }
 
 /**

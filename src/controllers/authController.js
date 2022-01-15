@@ -20,8 +20,10 @@ const googleLogin = catchAsync(async (req, res) => {
 });
 
 const facebookLogin = catchAsync(async (req, res) => {
-  const result = await authService.facebookLogin()
-  res.send(result);
+  const user = await authService.facebookLogin(req.body, req.socket.remoteAddress)
+  const token = await tokenService.generateAuthTokens(user)
+  res.send({ user, token });
+
 });
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
