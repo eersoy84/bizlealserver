@@ -58,7 +58,6 @@ app.get('/healthz', (req, res) => {
   res.status(httpStatus.OK).send('')
 });
 
-
 app.get('/loaderio-304ff6a00b644e779082c6647571f070.txt', async (req, res) => {
   var data = await fs.readFile('./loaderio-304ff6a00b644e779082c6647571f070.txt')
   res.status(200).send(data)

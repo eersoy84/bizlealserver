@@ -10,7 +10,7 @@ const ApiError = require('../utils/ApiError');
 const seller = require('../models/seller');
 const { formattedPrice } = require('../config/helpers')
 
-const initalCart = {
+const emptyCart = {
   info: {},
   items: [],
   ratings: [],
@@ -22,7 +22,7 @@ const cartGet = async (reqBody, userId) => {
     const { cartId, isOrder } = reqBody;
     const userCart = await UserCartFindOne(cartId, userId, isOrder)
     if (!userCart) {
-      return initalCart
+      return emptyCart
     }
     return getUserCart(userCart);
   } catch (err) {
@@ -255,41 +255,58 @@ const cartUpdate = async (reqBody, userId) => {
     })
     const userCart = await UserCartFindOne(cartId, userId, isOrder = null);
     let newCart;
+    let remainingNumOfItemsInStock = product?.total_amount - (product?.num_orders + product?.blocking_stock)
     if (!userCart) {
+      checkRemainingNumOfItemsInStock(remainingNumOfItemsInStock, amount)
       const cartId = await createNewCart(userId, product, amount)
       newCart = await UserCartFindOne(cartId, userId, isOrder = null);
     }
     else {
-      const userCartItemsLength = userCart?.user_cart_items.length;
+      const userCartItemsLength = userCart?.user_cart_items?.length;
       const item = userCart?.user_cart_items?.find(item => item.product.id == adId)
       if (item) {
-        if (amount == 0) {
+        if (amount < 0) {
+          throw new ApiError(httpStatus.BAD_REQUEST, "Girdiğiniz adet geçersiz!")
+        }
+        else if (amount == 0) {
           if (userCartItemsLength === 1) {
             await userCart.destroy()
-            return initalCart
+            return emptyCart
           }
           var diff = amount - item.amount
           await calculateCartSubTotal(userCart, item.product, diff)
           await item.destroy();
         } else {
+          checkRemainingNumOfItemsInStock(remainingNumOfItemsInStock, amount)
           var diff = amount - item.amount
           item.amount = amount;
           await item.save();
           await calculateCartSubTotal(userCart, item.product, diff)
         }
       } else {
-        if (amount != 0) {
-          await createNewCartItem(userCart, product, amount)
+        if (amount <= 0) {
+          throw new ApiError(httpStatus.BAD_REQUEST, "Girdiğiniz adet geçersiz!")
         }
+        checkRemainingNumOfItemsInStock(remainingNumOfItemsInStock, amount)
+        await createNewCartItem(userCart, product, amount)
       }
       newCart = await UserCartFindOne(cartId, userId, isOrder = null);
     }
     return getUserCart(newCart)
   }
   catch (err) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Sepet güncellenirken hata oluştu!")
+    throw new ApiError(err.statusCode, err.message)
   }
 
+}
+
+const checkRemainingNumOfItemsInStock = (remainingNumOfItemsInStock, amount) => {
+  if (remainingNumOfItemsInStock <= 0) {
+    throw new ApiError(httpStatus.FORBIDDEN, `Bü ürün tükenmiştir!`)
+  }
+  if (amount > remainingNumOfItemsInStock) {
+    throw new ApiError(httpStatus.FORBIDDEN, `Bu üründen maksimum ${remainingNumOfItemsInStock} adet satınalabilirsiniz!`)
+  }
 }
 
 const calculateCartSubTotal = async (userCart, product, diff) => {
@@ -329,7 +346,6 @@ const getCartItem = (id, product, amount) => {
     amount: amount,
     payment_id: null,
     block: 0,
-    total_price: product.normal_price * amount,
     date_created: Date.now(),
     date_updated: Date.now()
   }

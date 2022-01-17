@@ -3,6 +3,7 @@ const ApiError = require('../utils/ApiError');
 const models = require('../config/dbmodels');
 const iyzicoService = require('./iyzicoService');
 const { Iyzipay, url } = require('../config/iyzipay')
+const logger = require('../config/logger')
 
 const { user_cart: UserCart, user_cart_items: UserCartItems, product_reviews: ProductReviews, user_chart_seller_ratings: SellerRatings, user_cart_item_return_requests: UserCartItemReturnRequests } = models;
 
@@ -119,10 +120,50 @@ const createOrder = async (reqBody, userId) => {
     }
   )
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir sipariş bulunmamaktadır!")
-  return await iyzicoService.createOrderRequest(formatOrder(cart));
+  await updateCartStatusBeforePayment(cart)
+  setUserCartItemBlockToDefault(cart);
+  return await iyzicoService.createOrderRequest(formatOrderRequest(cart));
+}
+const setUserCartItemBlockToDefault = async (cart) => {
+  let userCartItems = cart.user_cart_items
+  return new Promise((resolve, reject) => {
+    setTimeout(async () => {
+      try {
+        let newCart = await UserCart.findByPk(cart.id)
+        if (newCart.status == "paid") {
+          logger.info("payment is successfull")
+          return
+        }
+        logger.info("payment is not successfull, proceeding to defaults")
+        await userCartItems?.map(async item =>
+          await item.update({
+            block: 0
+          }))
+        await cart.update({
+          status: "created"
+        })
+        resolve(true)
+      } catch (err) {
+        reject(err)
+      }
+    }, 300 * 1000)
+  })
+
 }
 
-const formatOrder = (cart) => {
+const updateCartStatusBeforePayment = async (cart) => {
+  let userCartItems = cart.user_cart_items;
+  await cart.update({
+    status: "blocking"
+  })
+  await userCartItems.map(async item =>
+    await item.update({
+      block: 1
+    }))
+}
+
+
+const formatOrderRequest = (cart) => {
   let user = cart?.user;
   let addresses = user?.user_addresses;
   let billingAddress;
@@ -198,7 +239,6 @@ const formatOrder = (cart) => {
 }
 
 const retrieveOrder = async (token, params) => {
-  const { shippingId, billingId } = params
   let request = {
     locale: Iyzipay.LOCALE.TR,
     token
@@ -206,20 +246,41 @@ const retrieveOrder = async (token, params) => {
   let result = await iyzicoService.createRetrieveOrder(request)
   let orderId = result.basketId;
   let paymentId = result.paymentId
-  const Order = await UserCart.findOne({
+  const userCart = await UserCart.findOne({
     where: {
       uuid: orderId
-    }
+    },
+    include: [{
+      association: 'user_cart_items'
+    }]
   })
-  await Order.update({
+  updateCartStatusAfterPayment(userCart, paymentId, params)
+  logger.info("ascyn mi?", orderId)
+  return orderId
+}
+
+const updateCartStatusAfterPayment = async (cart, paymentId, params) => {
+  const { shippingId, billingId } = params
+  let userCartItems = cart?.user_cart_items
+  await userCartItems.map(async item => {
+    logger.info("once burası gelmeli", item.id)
+    let itemUpdate = await item.update({
+      block: 0,
+      payment_id: paymentId
+    })
+    logger.info("2. kısım")
+    console.log(itemUpdate)
+  })
+  logger.info("öncesi cart update")
+  await cart.update({
     payment_id: paymentId,
     address_id: parseInt(shippingId),
     invoice_id: parseInt(billingId),
     status: "paid"
   })
-  return orderId
-}
+  logger.info("sonrası cart update")
 
+}
 module.exports = {
   rateItem,
   rateSeller,
