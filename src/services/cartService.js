@@ -305,7 +305,7 @@ const checkRemainingNumOfItemsInStock = (remainingNumOfItemsInStock, amount) => 
     throw new ApiError(httpStatus.FORBIDDEN, `Bü ürün tükenmiştir!`)
   }
   if (amount > remainingNumOfItemsInStock) {
-    throw new ApiError(httpStatus.FORBIDDEN, `Bu üründen maksimum ${remainingNumOfItemsInStock} adet satınalabilirsiniz!`)
+    throw new ApiError(httpStatus.FORBIDDEN, `Bu üründen maksimum ${remainingNumOfItemsInStock} adet alabilirsiniz!`)
   }
 }
 
@@ -372,6 +372,9 @@ const UserCarts = async (userId) => {
           },
         ]
       },
+    ],
+    order: [
+      ['id', 'DESC'],
     ],
   })
   return userCarts;

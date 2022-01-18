@@ -41,15 +41,15 @@ const approveSubMerchant = (request, callback) => {
     });
 }
 const createRetrieveOrder = (request) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         iyzipay.checkoutForm.retrieve(request, (err, result) => {
             if (err) {
-                // reject()
-                throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
+                reject(result)
+                // throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
             }
-            if (result.status === 'failure') {
-                throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-            }
+            // if (result.status === 'failure') {
+            //     throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
+            // }
             resolve(result)
         });
     })

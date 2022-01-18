@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: Sequelize.Sequelize.literal('CURRENT_TIMESTAMP'),
       get() {
         var date = this.getDataValue('review_date')
-        if (date) return moment(date).locale('tr').format('Do MMMM, YYYY, HH:MM')
+        if (date) return moment(date).locale('tr').format('Do MMMM YYYY, HH:MM')
         else return null
       },
     },

@@ -36,7 +36,11 @@ const createOrder = catchAsync(async (req, res) => {
 
 const retrieveOrder = catchAsync(async (req, res) => {
   const orderId = await orderService.retrieveOrder(req.body.token, req.query);
-  res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
+  if (!orderId) {
+    res.redirect(`${redirect_url}/siparis/hata`)
+  } else {
+    res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
+  }
 })
 
 module.exports = {

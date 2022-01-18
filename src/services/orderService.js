@@ -120,21 +120,18 @@ const createOrder = async (reqBody, userId) => {
     }
   )
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir sipariş bulunmamaktadır!")
-  await updateCartStatusBeforePayment(cart)
-  setUserCartItemBlockToDefault(cart);
+  updateCartStatusBeforePayment(cart)
+  setUserCartItemBlockToDefaultAfterTimeout(cart, 300);
   return await iyzicoService.createOrderRequest(formatOrderRequest(cart));
 }
-const setUserCartItemBlockToDefault = async (cart) => {
+const setUserCartItemBlockToDefaultAfterTimeout = async (cart, timeout) => {
   let userCartItems = cart.user_cart_items
-  return new Promise((resolve, reject) => {
-    setTimeout(async () => {
-      try {
-        let newCart = await UserCart.findByPk(cart.id)
-        if (newCart.status == "paid") {
-          logger.info("payment is successfull")
-          return
-        }
-        logger.info("payment is not successfull, proceeding to defaults")
+  setTimeout(async () => {
+    try {
+      let newCart = await UserCart.findByPk(cart.id)
+      logger.info(`userCart: ${newCart.status}`)
+      if (newCart?.status == "blocking") {
+        logger.info("payment time out,reverting back to default!")
         await userCartItems?.map(async item =>
           await item.update({
             block: 0
@@ -142,25 +139,35 @@ const setUserCartItemBlockToDefault = async (cart) => {
         await cart.update({
           status: "created"
         })
-        resolve(true)
-      } catch (err) {
-        reject(err)
       }
-    }, 300 * 1000)
-  })
+    } catch (err) {
+      throw new ApiError(err.statusCode, err.message)
+    }
+  }, timeout * 1000)
 
 }
 
 const updateCartStatusBeforePayment = async (cart) => {
   let userCartItems = cart.user_cart_items;
-  await cart.update({
-    status: "blocking"
-  })
-  await userCartItems.map(async item =>
+  userCartItems.map(async item =>
     await item.update({
       block: 1
     }))
+  await cart.update({
+    status: "blocking"
+  })
 }
+const revertCartStatusToDefaultOnFailure = async (cart) => {
+  let userCartItems = cart.user_cart_items;
+  await cart.update({
+    status: "created"
+  })
+  userCartItems.map(async item =>
+    await item.update({
+      block: 0
+    }))
+}
+
 
 
 const formatOrderRequest = (cart) => {
@@ -239,14 +246,16 @@ const formatOrderRequest = (cart) => {
 }
 
 const retrieveOrder = async (token, params) => {
-  let request = {
+  let result = await iyzicoService.createRetrieveOrder({
     locale: Iyzipay.LOCALE.TR,
     token
+  })
+  if (result?.status != "success") {
+    return
   }
-  let result = await iyzicoService.createRetrieveOrder(request)
   let orderId = result.basketId;
   let paymentId = result.paymentId
-  const userCart = await UserCart.findOne({
+  const cart = await UserCart.findOne({
     where: {
       uuid: orderId
     },
@@ -254,31 +263,40 @@ const retrieveOrder = async (token, params) => {
       association: 'user_cart_items'
     }]
   })
-  updateCartStatusAfterPayment(userCart, paymentId, params)
-  logger.info("ascyn mi?", orderId)
+  if (result.paymentStatus == "FAILURE") {
+    revertCartStatusToDefaultOnFailure(cart)
+    return;
+  }
+  updateCartItemsAfterPayment(cart?.user_cart_items, paymentId)
+    .then(() => {
+      updateCartStatusAfterPayment(cart, params, paymentId)
+    })
+    .catch(err => {
+      logger.error(`Ödeme işlemı sırasında hata oluştu ${err.message}`)
+      return
+    })
   return orderId
 }
 
-const updateCartStatusAfterPayment = async (cart, paymentId, params) => {
-  const { shippingId, billingId } = params
-  let userCartItems = cart?.user_cart_items
-  await userCartItems.map(async item => {
-    logger.info("once burası gelmeli", item.id)
-    let itemUpdate = await item.update({
+const updateCartItemsAfterPayment = async (userCartItems, paymentId) => {
+  userCartItems.map(async item => {
+    await item.update({
       block: 0,
       payment_id: paymentId
     })
-    logger.info("2. kısım")
-    console.log(itemUpdate)
-  })
-  logger.info("öncesi cart update")
+    logger.info(`Item NO:${item.id} blocking status changed to : ${item.block}`)
+  }
+  )
+}
+const updateCartStatusAfterPayment = async (cart, params, paymentId) => {
+  const { shippingId, billingId } = params
   await cart.update({
     payment_id: paymentId,
     address_id: parseInt(shippingId),
     invoice_id: parseInt(billingId),
-    status: "paid"
+    status: "paid",
   })
-  logger.info("sonrası cart update")
+  logger.info(`Status of CART:${cart.id} changed to: ${cart.status}`)
 
 }
 module.exports = {
