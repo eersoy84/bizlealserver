@@ -3,6 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const { authService, orderService, tokenService, emailService } = require('../services');
 const { redirect_url } = require('../config/iyzipay');
 const ApiError = require('../utils/ApiError');
+const logger = require('../config/logger');
 
 const rateItem = catchAsync(async (req, res) => {
   await orderService.rateItem({ ...req.body, userId: req.user.id });
@@ -36,6 +37,7 @@ const createOrder = catchAsync(async (req, res) => {
 
 const retrieveOrder = catchAsync(async (req, res) => {
   const orderId = await orderService.retrieveOrder(req.body.token, req.query);
+  logger.info(`orderId: ${orderId}`)
   if (!orderId) {
     res.redirect(`${redirect_url}/siparis/hata`)
   } else {
@@ -50,5 +52,5 @@ module.exports = {
   cancelProduct,
   returnProduct,
   createOrder,
-  retrieveOrder
+  retrieveOrder,
 };

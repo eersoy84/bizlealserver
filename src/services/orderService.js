@@ -4,6 +4,7 @@ const models = require('../config/dbmodels');
 const iyzicoService = require('./iyzicoService');
 const { Iyzipay, url } = require('../config/iyzipay')
 const logger = require('../config/logger')
+const Sequelize = require('../config/connection')
 
 const { user_cart: UserCart, user_cart_items: UserCartItems, product_reviews: ProductReviews, user_chart_seller_ratings: SellerRatings, user_cart_item_return_requests: UserCartItemReturnRequests } = models;
 
@@ -120,9 +121,13 @@ const createOrder = async (reqBody, userId) => {
     }
   )
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir sipariş bulunmamaktadır!")
-  updateCartStatusBeforePayment(cart)
-  setUserCartItemBlockToDefaultAfterTimeout(cart, 300);
-  return await iyzicoService.createOrderRequest(formatOrderRequest(cart));
+  try {
+    updateCartStatusBeforePayment(cart)
+    setUserCartItemBlockToDefaultAfterTimeout(cart, 300);
+    return await iyzicoService.createOrderRequest(formatOrderRequest(cart));
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, err.message)
+  }
 }
 const setUserCartItemBlockToDefaultAfterTimeout = async (cart, timeout) => {
   let userCartItems = cart.user_cart_items
@@ -267,38 +272,48 @@ const retrieveOrder = async (token, params) => {
     revertCartStatusToDefaultOnFailure(cart)
     return;
   }
-  updateCartItemsAfterPayment(cart?.user_cart_items, paymentId)
-    .then(() => {
-      updateCartStatusAfterPayment(cart, params, paymentId)
-    })
-    .catch(err => {
-      logger.error(`Ödeme işlemı sırasında hata oluştu ${err.message}`)
-      return
-    })
+  await updateCartItemsAfterPaymentSuccess(cart, paymentId)
+  updateCartStatusAfterPaymentSuccess(cart, params, paymentId)
   return orderId
 }
 
-const updateCartItemsAfterPayment = async (userCartItems, paymentId) => {
-  userCartItems.map(async item => {
-    await item.update({
-      block: 0,
-      payment_id: paymentId
-    })
-    logger.info(`Item NO:${item.id} blocking status changed to : ${item.block}`)
-  }
-  )
-}
-const updateCartStatusAfterPayment = async (cart, params, paymentId) => {
-  const { shippingId, billingId } = params
-  await cart.update({
-    payment_id: paymentId,
-    address_id: parseInt(shippingId),
-    invoice_id: parseInt(billingId),
-    status: "paid",
-  })
-  logger.info(`Status of CART:${cart.id} changed to: ${cart.status}`)
 
+const updateCartItemsAfterPaymentSuccess = async (cart, paymentId) => {
+  let items = cart.user_cart_items;
+  const updateArray = items.map(item => {
+    return {
+      id: item.id,
+      block: 0,
+      payment_id: paymentId,
+    }
+  })
+  try {
+    logger.info(`initiating CART ITEMS BULK UPDATE: block:0`)
+    await UserCartItems.bulkCreate(updateArray, {
+      updateOnDuplicate: ['block', 'payment_id']
+    })
+    logger.info(`user_cart_items update success`)
+  } catch (err) {
+    logger.error(`user_cart_items Update Error=> : ${err}`)
+  }
 }
+const updateCartStatusAfterPaymentSuccess = async (cart, params, paymentId) => {
+  const { shippingId, billingId } = params
+  logger.info(`initiating Cart Update: STATUS==>paid`)
+  try {
+    await cart.update({
+      payment_id: paymentId,
+      address_id: parseInt(shippingId),
+      invoice_id: parseInt(billingId),
+      status: "paid",
+    })
+    logger.info(`cart update success`)
+  } catch (err) {
+    logger.error(`Cart STATUS ERROR=>: ${err}`)
+  }
+}
+
+
 module.exports = {
   rateItem,
   rateSeller,
@@ -306,5 +321,5 @@ module.exports = {
   cancelProduct,
   returnProduct,
   createOrder,
-  retrieveOrder
+  retrieveOrder,
 };

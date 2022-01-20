@@ -3,13 +3,13 @@ const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 
 const createOrderRequest = (request) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         iyzipay.checkoutFormInitialize.create(request, (err, result) => {
             if (err) {
-                throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
+                reject(err)
             }
             if (result.status === 'failure') {
-                throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
+                reject(err)
             }
             resolve(result)
         });
