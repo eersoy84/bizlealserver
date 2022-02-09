@@ -63,20 +63,16 @@ const getRatings = async (reqBody) => {
 
 const cancelProduct = async (reqBody) => {
   const { id, notes, reasonId, returnAmount } = reqBody
-  try {
-    await UserCartItemReturnRequests.create({
-      user_cart_item_id: id,
-      return_reason_id: reasonId,
-      return_amount: returnAmount,
-      date: Date.now(),
-      status: "created",
-      notes,
-    })
-    return;
-  } catch (err) {
-    throw new ApiError(httpStatus.BAD_REQUEST, "Ürün iade işlemi sırasında hata oluştu!")
-  }
-
+  let result = await UserCartItemReturnRequests.create({
+    user_cart_item_id: id,
+    return_reason_id: reasonId,
+    return_amount: returnAmount,
+    date: Date.now(),
+    status: "created",
+    notes,
+  })
+  if (!result) throw new ApiError(httpStatus.BAD_REQUEST, "Ürün iade işlemi sırasında hata oluştu!")
+  return
 }
 
 const returnProduct = async (reqBody, userId) => {
@@ -121,33 +117,33 @@ const createOrder = async (reqBody, userId) => {
     }
   )
   if (!cart) throw new ApiError(httpStatus.BAD_REQUEST, "Böyle bir sipariş bulunmamaktadır!")
+
+  let result;
   try {
-    updateCartStatusBeforePayment(cart)
-    setUserCartItemBlockToDefaultAfterTimeout(cart, 300);
-    return await iyzicoService.createOrderRequest(formatOrderRequest(cart));
+    result = await iyzicoService.createOrderRequest(formatOrderRequest(cart));
   } catch (err) {
-    throw new ApiError(httpStatus.BAD_REQUEST, err.message)
+    throw new ApiError(httpStatus.BAD_REQUEST, err.errorMessage)
   }
+  logger.info("proceeding with iyzico payment service")
+  updateCartStatusBeforePayment(cart)
+  setUserCartItemBlockToDefaultAfterTimeout(cart, 300);
+  return result;
 }
 const setUserCartItemBlockToDefaultAfterTimeout = async (cart, timeout) => {
   let userCartItems = cart.user_cart_items
   setTimeout(async () => {
-    try {
-      let newCart = await UserCart.findByPk(cart.id)
-      logger.info(`userCart: ${newCart.status}`)
-      if (newCart?.status == "blocking") {
-        logger.info("payment time out,reverting back to default!")
-        await userCartItems?.map(async item =>
-          await item.update({
-            block: 0
-          }))
-        await cart.update({
-          status: "created"
-        })
-      }
-    } catch (err) {
-      throw new ApiError(err.statusCode, err.message)
+    let newCart = await UserCart.findByPk(cart.id)
+    if (newCart?.status == "blocking") {
+      logger.warn("payment timed out, reverting back to default!")
+      userCartItems?.map(async item =>
+        await item.update({
+          block: 0
+        }))
+      await cart.update({
+        status: "created"
+      })
     }
+    logger.info(`User Payment Process Finished On Time: ${newCart.status}`)
   }, timeout * 1000)
 
 }
@@ -219,7 +215,6 @@ const formatOrderRequest = (cart) => {
   })
   let result = {
     locale: 'tr',
-    conversationId2: '123456789',
     price: (parseFloat(cart.subTotal).toFixed(2)),
     paidPrice: (parseFloat(cart.subTotal).toFixed(2)),
     currency: 'TRY',
@@ -251,15 +246,10 @@ const formatOrderRequest = (cart) => {
 }
 
 const retrieveOrder = async (token, params) => {
-  let result = await iyzicoService.createRetrieveOrder({
-    locale: Iyzipay.LOCALE.TR,
-    token
-  })
-  if (result?.status != "success") {
-    return
-  }
-  let orderId = result.basketId;
-  let paymentId = result.paymentId
+  let result = await iyzicoCreateRetrieveOrder(token)
+  let orderId = result?.basketId;
+  let paymentId = result?.paymentId
+  let itemTransactions = result?.itemTransactions;
   const cart = await UserCart.findOne({
     where: {
       uuid: orderId
@@ -270,47 +260,50 @@ const retrieveOrder = async (token, params) => {
   })
   if (result.paymentStatus == "FAILURE") {
     revertCartStatusToDefaultOnFailure(cart)
-    return;
+    throw new ApiError(httpStatus.BAD_REQUEST, "Ödeme işleminde hata oluştu!")
   }
-  await updateCartItemsAfterPaymentSuccess(cart, paymentId)
+  await updateCartItemsAfterPaymentSuccess(cart, itemTransactions)
   updateCartStatusAfterPaymentSuccess(cart, params, paymentId)
   return orderId
 }
 
+const iyzicoCreateRetrieveOrder = async (token) => {//try catch is required
+  try {
+    return await iyzicoService.createRetrieveOrder({
+      locale: Iyzipay.LOCALE.TR,
+      token
+    })
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, err.errorMessage)
+  }
+}
 
-const updateCartItemsAfterPaymentSuccess = async (cart, paymentId) => {
+
+const updateCartItemsAfterPaymentSuccess = async (cart, itemTransactions) => {
   let items = cart.user_cart_items;
-  const updateArray = items.map(item => {
+  const updateArray = items.map((item, index) => {
     return {
       id: item.id,
       block: 0,
-      payment_id: paymentId,
+      payment_id: itemTransactions[index].paymentTransactionId,
     }
   })
-  try {
-    logger.info(`initiating CART ITEMS BULK UPDATE: block:0`)
-    await UserCartItems.bulkCreate(updateArray, {
-      updateOnDuplicate: ['block', 'payment_id']
-    })
-    logger.info(`user_cart_items update success`)
-  } catch (err) {
-    logger.error(`user_cart_items Update Error=> : ${err}`)
-  }
+  logger.info(`initiating CART ITEMS BULK UPDATE: block:0`)
+  await UserCartItems.bulkCreate(updateArray, {
+    updateOnDuplicate: ['block', 'payment_id']
+  })
+  logger.info(`user_cart_items update success`)
 }
 const updateCartStatusAfterPaymentSuccess = async (cart, params, paymentId) => {
   const { shippingId, billingId } = params
-  logger.info(`initiating Cart Update: STATUS==>paid`)
-  try {
-    await cart.update({
-      payment_id: paymentId,
-      address_id: parseInt(shippingId),
-      invoice_id: parseInt(billingId),
-      status: "paid",
-    })
-    logger.info(`cart update success`)
-  } catch (err) {
-    logger.error(`Cart STATUS ERROR=>: ${err}`)
-  }
+  logger.info(`initiating Cart Update: ${cart.status}`)
+  await cart.update({
+    payment_id: paymentId,
+    address_id: parseInt(shippingId),
+    invoice_id: parseInt(billingId),
+    status: "paid",
+  })
+  logger.info(`CART STATUS UPDATED: ${cart.status}`)
 }
 
 

@@ -15,8 +15,14 @@ const getAds = async () => {
     throw new ApiError(httpStatus.BAD_REQUEST, "İlanlar yüklenirken hata oluştu!")
   }
 };
-const fetchAds = async () => {
+const fetchAds = async (...adIdArray) => {
+  let whereClause = {}
+  if (adIdArray?.length > 0) {
+    whereClause = { ...whereClause, id: adIdArray }
+  }
   const products = await Product.findAll({
+    logging: false,
+    where: whereClause,
     order: [
       ['id', 'ASC'],
     ],
@@ -59,6 +65,64 @@ const fetchAds = async () => {
   })
   return formatProducts(products)
 }
+
+const getAdsById = async (adId) => {
+  try {
+    const products = await fetchAdsById(adId);
+    return products[0];
+  }
+  catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "İlan yüklenirken hata oluştu!")
+  }
+}
+const fetchAdsById = async (adId) => {
+  const products = await Product.findOne({
+    logging: false,
+    where: {
+      id: parseInt(adId)
+    },
+    order: [
+      ['id', 'ASC'],
+    ],
+    include: [
+      {
+        association: 'model',
+        required: false,
+        attributes: ['id', 'name'],
+        include: [
+          {
+            association: 'category',
+            required: false,
+            where: {
+              id: sequelize.col('model.category_id')
+            },
+            attributes: ['id', 'name', 'parentId']
+          },
+          {
+            association: 'brand',
+            required: false,
+            where: {
+              id: sequelize.col('model.brand_id')
+            },
+            attributes: ['id', 'name']
+          }
+        ]
+      },
+      {
+        association: 'seller_seller',
+      },
+      {
+        association: 'product_specs',
+      },
+      {
+        association: 'product_images',
+        required: false,
+        attributes: ['url']
+      },
+    ]
+  })
+  return formatProducts([products])
+}
 const formatProducts = (products) => {
   return products && products.map(product => {
     let images = product?.product_images?.map(image => {
@@ -91,6 +155,10 @@ const formatProducts = (products) => {
       specs: product.product_specs,
       imageUrl: product && product.product_images && product?.product_images[0]?.url,
       images,
+      numOrders: product.num_orders,
+      instantDiscountPercent: product.instant_discount_percent,
+      instantPrice: product.instantPrice,
+      participants: product.participants
     }
   })
 
@@ -98,7 +166,7 @@ const formatProducts = (products) => {
 
 const getInstantAdInfo = async () => {
   try {
-    const products = await Product.findAll()
+    const products = await Product.findAll({ logging: false })
     return fetchInstantAdInfo(products);
   } catch (err) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Anlık Fiyatlar Yüklenirken Hata Oluştu!")
@@ -125,7 +193,11 @@ const getFavorites = async (userId) => {
       user_id: userId
     }
   })
-  return favorites.map(favorite => favorite.product_id)
+  const adIdArray = favorites.map(favorite => favorite.product_id)
+  if (adIdArray?.length === 0) {
+    return [];
+  }
+  return await fetchAds(...adIdArray)
 };
 
 
@@ -228,5 +300,6 @@ module.exports = {
   follow,
   unfollow,
   setAddress,
-  deleteAddress
+  deleteAddress,
+  getAdsById
 };

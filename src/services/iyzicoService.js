@@ -6,10 +6,10 @@ const createOrderRequest = (request) => {
     return new Promise((resolve, reject) => {
         iyzipay.checkoutFormInitialize.create(request, (err, result) => {
             if (err) {
-                reject(err)
+                return reject(err)
             }
-            if (result.status === 'failure') {
-                reject(err)
+            if (result.status !== 'success') {
+                return reject(result)
             }
             resolve(result)
         });
@@ -17,39 +17,70 @@ const createOrderRequest = (request) => {
 }
 
 
-const createSubMerchant = (request, callback) => {
-    iyzipay.subMerchant.create(request, (err, result) => {
-        if (err) {
-            throw new ApiError(httpStatus.BAD_REQUEST, "Alt tedarikçi oluştururken hata oluştu!")
-        }
-        if (result.status === 'failure') {
-            throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-        }
-        callback(result)
-    });
+const createSubMerchant = (request) => {
+    return new Promise((resolve, reject) => {
+        iyzipay.subMerchant.create(request, (err, result) => {
+            if (err) {
+                return reject(err)
+            }
+            if (result.status !== 'success') {
+                return reject(result)
+            }
+            resolve(result)
+        });
+    })
+
 }
 
 const approveSubMerchant = (request, callback) => {
-    iyzipay.subMerchant.approve(request, (err, result) => {
-        if (err) {
-            throw new ApiError(httpStatus.BAD_REQUEST, "Alt üye iş yeri oluştururken hata oluştu!")
-        }
-        if (result.status === 'failure') {
-            throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-        }
-        callback(result)
-    });
+    return new Promise((resolve, reject) => {
+        iyzipay.subMerchant.approve(request, (err, result) => {
+            if (err) {
+                return reject(err)
+            }
+            if (result.status !== 'success') {
+                return reject(result)
+            }
+            resolve(result)
+        });
+    })
 }
 const createRetrieveOrder = (request) => {
     return new Promise((resolve, reject) => {
         iyzipay.checkoutForm.retrieve(request, (err, result) => {
             if (err) {
-                reject(result)
-                // throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Ödeme işlemi sırasında hata oluştu")
+                return reject(err)
             }
-            // if (result.status === 'failure') {
-            //     throw new ApiError(httpStatus.BAD_REQUEST, result.errorMessage)
-            // }
+            if (result.status !== 'success') {
+                return reject(result)
+            }
+            resolve(result)
+        });
+    })
+}
+
+const approvePayment = (request) => {
+    return new Promise((resolve, reject) => {
+        iyzipay.approval.create(request, (err, result) => {
+            if (err) {
+                return reject(err)
+            }
+            if (result.status !== 'success') {
+                return reject(result)
+            }
+            resolve(result)
+        });
+    })
+}
+const disapprovePayment = (request) => {
+    return new Promise((resolve, reject) => {
+        iyzipay.disapproval.create(request, (err, result) => {
+            if (err) {
+                return reject(err)
+            }
+            if (result.status !== 'success') {
+                return reject(result)
+            }
             resolve(result)
         });
     })
@@ -60,6 +91,8 @@ module.exports = {
     createOrderRequest,
     createSubMerchant,
     approveSubMerchant,
-    createRetrieveOrder
+    createRetrieveOrder,
+    approvePayment,
+    disapprovePayment
 }
 

@@ -25,6 +25,12 @@ const deleteAddress = {
   }),
 };
 
+const getAdsById = {
+  params: Joi.object().keys({
+    adId: Joi.string().required(),
+  }),
+};
+
 const setAddress = {
   body: Joi.object().keys({
     id: Joi.number().integer().required(),
@@ -49,5 +55,6 @@ module.exports = {
   unfollow,
   bin,
   setAddress,
-  deleteAddress
+  deleteAddress,
+  getAdsById
 };

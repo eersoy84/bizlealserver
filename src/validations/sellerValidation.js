@@ -27,11 +27,35 @@ const orders = {
     permissionId: Joi.number().integer().required().min(1),
   }),
 };
+const createSubMerchant = {
+  body: Joi.object().keys({
+    type: Joi.number().required().valid(1, 2, 3),
+    address: Joi.string().required(),
+    taxOffice: Joi.string().required(),
+    name: Joi.string().required(),
+    marketplaceName: Joi.string().required(),
+    marketplaceLogo: Joi.string().required(),
+    contactName: Joi.string().required(),
+    phone: Joi.number().required(),
+    trIdNum: Joi.number().required(),
+    iban: Joi.string().required(),
+    email: Joi.string().required(),
+    status: Joi.string().allow('', null),
+    
+  }),
+};
+const updateSubMerchant = {
+  body: Joi.object().keys({
+    permissionId: Joi.number().integer().required().min(1),
+  }),
+};
 
 
 module.exports = {
   adQuestions,
   ads,
   orders,
-  answerQuestion
+  answerQuestion,
+  createSubMerchant,
+  updateSubMerchant
 };

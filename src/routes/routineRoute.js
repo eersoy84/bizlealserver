@@ -14,10 +14,13 @@ const router = express.Router();
 
 
 router.get('/ads', findCacheByBody(), routineController.getAds); // calls exposed_list_ads()
+router.get('/ads/:adId', findCacheByBody(), validate(routineValidation.getAdsById), routineController.getAdsById); // calls exposed_list_ads()
 // router.get('/ads-cdn', findCacheByBody(), routineController.getAdsCdn); // calls ads_calc()
 router.get('/instantadinfo', routineController.getInstantAdInfo); //calls exposed_instant_ad_info
 
-router.get('/favorites', auth(), findCacheByBody(), routineController.getFavorites);
+router.get('/favorites',
+    // auth(), 
+    findCacheByBody(), routineController.getFavorites);
 router.post('/follow', auth(), validate(routineValidation.follow), routineController.follow);
 router.post('/unfollow', auth(), validate(routineValidation.unfollow), routineController.unfollow);
 // router.get('/orders', auth(), routineController.getOrders); //kullanılmıyor

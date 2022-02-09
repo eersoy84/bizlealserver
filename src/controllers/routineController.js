@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { routineService } = require('../services');
 const { keyGeneratorByBody, getPrefix, getCustomPrefix } = require('../config/cacheKeyGenerator');
 const redisClient = require('../config/redisClient');
+const logger = require('../config/logger');
 
 const getAds = catchAsync(async (req, res) => {
     const result = await routineService.getAds();
@@ -13,7 +14,16 @@ const getAds = catchAsync(async (req, res) => {
     }
     res.send(result);
 });
-
+const getAdsById = catchAsync(async (req, res) => {
+    const adId = req.params.adId
+    console.log("params", req.params)
+    console.log("query", req.query?.seoUrl)
+    const result = await routineService.getAdsById(adId);
+    if (result && redisClient.isConnected()) {
+        redisClient?.set(keyGeneratorByBody(req), JSON.stringify(result), 60);
+    }
+    res.send(result);
+});
 const getAdsCdn = catchAsync(async (req, res) => {
     const result = await routineService.getAdsCdn();
     if (result && redisClient.isConnected()) {
@@ -28,7 +38,9 @@ const getInstantAdInfo = catchAsync(async (req, res) => {
 });
 
 const getFavorites = catchAsync(async (req, res) => {
-    const result = await routineService.getFavorites(req.user.id);
+    logger.info("Geliyor mu buraya")
+    // const result = await routineService.getFavorites(req.user.id);
+    const result = await routineService.getFavorites(129);
     if (result && redisClient.isConnected()) {
         redisClient?.set(keyGeneratorByBody(req, req.user.id), JSON.stringify(result));
     }
@@ -77,5 +89,6 @@ module.exports = {
     follow,
     unfollow,
     setAddress,
-    deleteAddress
+    deleteAddress,
+    getAdsById
 };

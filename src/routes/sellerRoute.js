@@ -11,6 +11,8 @@ router.get('/list', auth(), findCacheByBody(), sellerController.getSellerList);
 router.post('/ads', auth(), findCacheByBody(), validate(sellerValidation.ads), sellerController.getSellerAds);
 router.post('/orders', auth(), findCacheByBody(), validate(sellerValidation.orders), sellerController.getSellerOrders);
 router.post('/answerQuestion', auth(), validate(sellerValidation.answerQuestion), sellerController.answerQuestion);
+router.post('/createSubMerchant', validate(sellerValidation.createSubMerchant), sellerController.createSubMerchant);
+router.post('/updateSubMerchant', validate(sellerValidation.updateSubMerchant), sellerController.createSubMerchant);
 
 
 

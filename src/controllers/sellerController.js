@@ -32,9 +32,21 @@ const answerQuestion = catchAsync(async (req, res) => {
   res.status(httpStatus.OK).send(result);
 });
 
+const createSubMerchant = catchAsync(async (req, res) => {
+  const result = await sellerService.createSubMerchant(req.body);
+  res.status(httpStatus.CREATED).send(result);
+});
+
+const updateSubMerchant = catchAsync(async (req, res) => {
+  const result = await sellerService.updateSubMerchant(req.body, req.user.id);
+  res.status(httpStatus.OK).send(result);
+});
+
 module.exports = {
   getSellerList,
   getSellerAds,
   getSellerOrders,
-  answerQuestion
+  answerQuestion,
+  createSubMerchant,
+  updateSubMerchant
 };

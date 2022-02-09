@@ -6,6 +6,8 @@ const sequelize = require('../config/connection')
 const ApiError = require('../utils/ApiError');
 const seller = require('../models/seller');
 const { formattedPrice } = require('../config/helpers')
+const iyzicoService = require('./iyzicoService');
+const { Iyzipay, url } = require('../config/iyzipay')
 
 const getSellerList = async (userId) => {
   const userSellerAccesses = await UserSellerAccess.findAll({
@@ -269,11 +271,81 @@ const answerQuestion = async (sellerAnswers, userId) => {
   })
   return "Sorular başarıyla cevaplandı"
 }
+const createSubMerchant = async (reqBody) => {
+  let subMerchant = await Seller.create({
+    type: reqBody.type,
+    name: reqBody.name,
+    marketplace_name: reqBody.marketplaceName,
+    marketplace_logo: reqBody.marketplaceLogo,
+    contact_name: reqBody.contactName,
+    tax_office: reqBody.taxOffice,
+    tr_id_num: reqBody.trIdNum,
+    phone: reqBody.phone,
+    iban: reqBody.iban,
+    adress: reqBody.address,
+    status: "created",
+  })
+  let result = await createIyzicoSubmerchant(subMerchant, reqBody.email)
+  await updateSeller(subMerchant.id, result?.subMerchantKey)
+  return result
+}
+const createIyzicoSubmerchant = async (subMerchant, email) => {
+  try {
+    let subMerchantRequest = getSubmerchantRequest(subMerchant, email);
+    return await iyzicoService.createSubMerchant(subMerchantRequest)
+  } catch (err) {
+    throw new ApiError(httpStatus.BAD_REQUEST, err.errorMessage)
+  }
+}
+const updateSeller = async (id, subMerchantKey) => {
+  await Seller.update({
+    submerchant_key: subMerchantKey
+  },
+    {
+      where: {
+        id: id
+      }
+    })
 
+}
+const updateSubMerchant = async () => {
+
+}
+const getSubmerchantRequest = (subMerchant, email) => {
+  let subMerchantType = 0;
+  let taxNumber = null;
+  let identityNumber = null;
+
+  let requestObj = {
+    locale: Iyzipay.LOCALE.TR,
+    subMerchantExternalId: subMerchant.id,
+    address: subMerchant.adress,
+    taxOffice: subMerchant.tax_office,
+    legalCompanyTitle: subMerchant.name,
+    email: email,
+    gsmNumber: subMerchant.phone,
+    name: subMerchant.marketplace_name,
+    iban: subMerchant.iban,
+    currency: Iyzipay.CURRENCY.TRY
+  }
+  if (subMerchant?.type === 2) {
+    identityNumber = subMerchant.tr_id_num
+    subMerchantType = Iyzipay.SUB_MERCHANT_TYPE.PRIVATE_COMPANY
+    requestObj = { ...requestObj, identityNumber, subMerchantType }
+  } else if (subMerchant?.type === 3) {
+    taxNumber = subMerchant.tr_id_num
+    subMerchantType = Iyzipay.SUB_MERCHANT_TYPE.LIMITED_OR_JOINT_STOCK_COMPANY
+    requestObj = { ...requestObj, taxNumber, subMerchantType }
+  }
+
+  return requestObj
+}
 
 module.exports = {
   getSellerList,
   getSellerAds,
   getSellerOrders,
-  answerQuestion
+  answerQuestion,
+  createSubMerchant,
+  updateSubMerchant
 };
