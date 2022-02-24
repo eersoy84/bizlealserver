@@ -35,13 +35,13 @@ const createSubMerchant = {
     name: Joi.string().required(),
     marketplaceName: Joi.string().required(),
     marketplaceLogo: Joi.string().required(),
-    contactName: Joi.string().required(),
-    phone: Joi.number().required(),
-    trIdNum: Joi.number().required(),
+    contactFirstName: Joi.string().required(),
+    contactSurName: Joi.string().required(),
+    phone: Joi.string().required(),
+    trIdNum: Joi.string().required(),
     iban: Joi.string().required(),
     email: Joi.string().required(),
     status: Joi.string().allow('', null),
-    
   }),
 };
 const updateSubMerchant = {

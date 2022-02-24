@@ -15,6 +15,9 @@ const login = {
     email: Joi.string().required(),
     password: Joi.string().required(),
     csrfToken: Joi.string().allow('', null),
+    callbackUrl: Joi.string().allow('', null),
+    redirect: Joi.boolean(),
+    json: Joi.boolean(),
   }),
 };
 

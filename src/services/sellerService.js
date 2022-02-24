@@ -22,7 +22,7 @@ const getSellerList = async (userId) => {
   })
 
   if (!userSellerAccesses) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir satıcı bulunmamaktadır!');
+    throw new ApiError(httpStatus.NOT_FOUND, 'Böyle bir tedarikçi bulunmamaktadır!');
   }
   // return sellerAccess;
   return getUserSellerAccesses(userSellerAccesses);
@@ -277,21 +277,20 @@ const createSubMerchant = async (reqBody) => {
     name: reqBody.name,
     marketplace_name: reqBody.marketplaceName,
     marketplace_logo: reqBody.marketplaceLogo,
-    contact_name: reqBody.contactName,
+    contact_name: reqBody.contactFirstName + ' ' + reqBody.contactSurName,
     tax_office: reqBody.taxOffice,
     tr_id_num: reqBody.trIdNum,
     phone: reqBody.phone,
     iban: reqBody.iban,
     adress: reqBody.address,
-    status: "created",
   })
-  let result = await createIyzicoSubmerchant(subMerchant, reqBody.email)
+  let result = await createIyzicoSubmerchant(subMerchant.id, reqBody)
   await updateSeller(subMerchant.id, result?.subMerchantKey)
   return result
 }
-const createIyzicoSubmerchant = async (subMerchant, email) => {
+const createIyzicoSubmerchant = async (id, reqBody) => {
   try {
-    let subMerchantRequest = getSubmerchantRequest(subMerchant, email);
+    let subMerchantRequest = getSubmerchantRequest(id, reqBody);
     return await iyzicoService.createSubMerchant(subMerchantRequest)
   } catch (err) {
     throw new ApiError(httpStatus.BAD_REQUEST, err.errorMessage)
@@ -299,7 +298,8 @@ const createIyzicoSubmerchant = async (subMerchant, email) => {
 }
 const updateSeller = async (id, subMerchantKey) => {
   await Seller.update({
-    submerchant_key: subMerchantKey
+    marketplace_uuid: subMerchantKey,
+    status: 'registered'
   },
     {
       where: {
@@ -311,29 +311,36 @@ const updateSeller = async (id, subMerchantKey) => {
 const updateSubMerchant = async () => {
 
 }
-const getSubmerchantRequest = (subMerchant, email) => {
+const getSubmerchantRequest = (id, reqBody) => {
   let subMerchantType = 0;
   let taxNumber = null;
   let identityNumber = null;
 
   let requestObj = {
     locale: Iyzipay.LOCALE.TR,
-    subMerchantExternalId: subMerchant.id,
-    address: subMerchant.adress,
-    taxOffice: subMerchant.tax_office,
-    legalCompanyTitle: subMerchant.name,
-    email: email,
-    gsmNumber: subMerchant.phone,
-    name: subMerchant.marketplace_name,
-    iban: subMerchant.iban,
-    currency: Iyzipay.CURRENCY.TRY
+    subMerchantExternalId: id,
+    address: reqBody.address,
+    taxOffice: reqBody.taxOffice,
+    legalCompanyTitle: reqBody.name,
+    email: reqBody.email,
+    gsmNumber: reqBody.phone,
+    name: reqBody.marketplaceName,
+    iban: reqBody.iban,
+    currency: Iyzipay.CURRENCY.TRY,
+    contactFirstName: reqBody.contactFirstName,
+    contactSurName: reqBody.contactSurName
   }
-  if (subMerchant?.type === 2) {
-    identityNumber = subMerchant.tr_id_num
+  if (reqBody?.type === 1) {
+    identityNumber = reqBody.trIdNum
+    subMerchantType = Iyzipay.SUB_MERCHANT_TYPE.PERSONAL
+    requestObj = { ...requestObj, identityNumber, subMerchantType }
+  }
+  else if (reqBody?.type === 2) {
+    identityNumber = reqBody.trIdNum
     subMerchantType = Iyzipay.SUB_MERCHANT_TYPE.PRIVATE_COMPANY
     requestObj = { ...requestObj, identityNumber, subMerchantType }
-  } else if (subMerchant?.type === 3) {
-    taxNumber = subMerchant.tr_id_num
+  } else {
+    taxNumber = reqBody.trIdNum
     subMerchantType = Iyzipay.SUB_MERCHANT_TYPE.LIMITED_OR_JOINT_STOCK_COMPANY
     requestObj = { ...requestObj, taxNumber, subMerchantType }
   }

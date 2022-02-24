@@ -95,12 +95,14 @@ const createOrder = async (reqBody, userId) => {
         association: 'user_cart_items',
         include: [{
           association: 'product',
-          include: [{
-            association: 'model',
-            include: [{
-              association: 'category'
-            }]
-          }
+          include: [
+            { association: 'seller_seller' },
+            {
+              association: 'model',
+              include: [{
+                association: 'category'
+              }]
+            }
           ]
         }]
       },
@@ -204,15 +206,20 @@ const formatOrderRequest = (cart) => {
   }
   let basketItems = cart?.user_cart_items?.map(item => {
     let category = item?.product?.model?.category
+    let subMerchantKey = item?.product?.seller_seller?.marketplace_uuid
     return {
-      id: item.id,
-      name: item.product.description,
-      category1: category.name,
-      category2: category.name,
+      id: item?.id,
+      name: item?.product.description,
+      category1: category?.name,
+      category2: category?.name,
       itemType: 'PHYSICAL',
-      price: (parseFloat(item.totalPrice).toFixed(2))
+      price: (parseFloat(item?.totalPrice).toFixed(2)),
+      subMerchantKey,
+      subMerchantPrice: (parseFloat(item?.totalPrice).toFixed(2)) * 0.95
     }
   })
+
+
   let result = {
     locale: 'tr',
     price: (parseFloat(cart.subTotal).toFixed(2)),

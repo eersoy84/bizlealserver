@@ -21,8 +21,7 @@ const askQuestion = async (reqBody, userId) => {
   return result
 }
 
-const getQuestions = async (reqBody) => {
-  const { adId } = reqBody;
+const getQuestions = async (adId) => {
   let questions = await ProductQuestion.findAll({
     where: {
       product_id: adId
@@ -48,8 +47,7 @@ const getFormattedQuestions = (questions) => {
   })
 }
 
-const getReviews = async (reqBody) => {
-  const { adId } = reqBody;
+const getReviews = async (adId) => {
   let reviews = await ProductReviews.findAll({
     where: {
       product_id: adId,

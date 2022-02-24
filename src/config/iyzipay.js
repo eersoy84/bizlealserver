@@ -1,8 +1,8 @@
 var Iyzipay = require('iyzipay');
 
 const iyzipay = new Iyzipay({
-    apiKey: 'sandbox-2K7KQygZsZp9zoBh62dQwQ8jjFp86Fcg',
-    secretKey: 'sandbox-vNH8l6EdAQdCHh8MvFNklsXi4EiDWYw6',
+    apiKey: 'sandbox-N3PL5uggGNofh05XNXl8z58gejKCjpPc',
+    secretKey: 'sandbox-n6kda9314had0abeVNPvWs1uCKcZiWAs',
     uri: 'https://sandbox-api.iyzipay.com'
 });
 var url;

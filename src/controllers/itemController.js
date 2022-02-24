@@ -5,7 +5,7 @@ const redisClient = require('../config/redisClient');
 const { keyGeneratorByBody, getCustomPrefixWithParams } = require('../config/cacheKeyGenerator');
 
 const getQuestions = catchAsync(async (req, res) => {
-  let result = await itemService.getQuestions(req.body);
+  let result = await itemService.getQuestions(req.params.adId);
   if (result && redisClient.isConnected()) {
     await redisClient?.set(keyGeneratorByBody(req), JSON.stringify(result));
   }
@@ -21,7 +21,7 @@ const askQuestion = catchAsync(async (req, res) => {
 });
 
 const getReviews = catchAsync(async (req, res) => {
-  let result = await itemService.getReviews(req.body);
+  let result = await itemService.getReviews(req.params.adId);
   if (result && redisClient.isConnected()) {
     await redisClient?.set(keyGeneratorByBody(req), JSON.stringify(result), 30);
   }

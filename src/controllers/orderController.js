@@ -36,12 +36,12 @@ const createOrder = catchAsync(async (req, res) => {
 })
 
 const retrieveOrder = catchAsync(async (req, res) => {
-  const orderId = await orderService.retrieveOrder(req.body.token, req.query);
-  logger.info(`orderId: ${orderId}`)
-  if (!orderId) {
-    res.redirect(`${redirect_url}/siparis/hata`)
+  const cartId = await orderService.retrieveOrder(req.body.token, req.query);
+  logger.info(`orderId: ${cartId}`)
+  if (!cartId) {
+    res.redirect(`${redirect_url}/siparis-ozet/hata`)
   } else {
-    res.redirect(`${redirect_url}/siparis/ozet?orderId=${orderId}`)
+    res.redirect(`${redirect_url}/siparis-ozet/basarili/${cartId}`)
   }
 })
 

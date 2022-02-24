@@ -18,8 +18,8 @@ router.get('/ads/:adId', findCacheByBody(), validate(routineValidation.getAdsByI
 // router.get('/ads-cdn', findCacheByBody(), routineController.getAdsCdn); // calls ads_calc()
 router.get('/instantadinfo', routineController.getInstantAdInfo); //calls exposed_instant_ad_info
 
-router.get('/favorites',
-    // auth(), 
+router.get('/favorites', 
+// auth(),
     findCacheByBody(), routineController.getFavorites);
 router.post('/follow', auth(), validate(routineValidation.follow), routineController.follow);
 router.post('/unfollow', auth(), validate(routineValidation.unfollow), routineController.unfollow);

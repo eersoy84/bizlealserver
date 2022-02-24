@@ -8,12 +8,12 @@ const askQuestion = {
 };
 
 const getQuestions = {
-  body: Joi.object().keys({
+  params: Joi.object().keys({
     adId: Joi.number().integer().required().min(0),
   }),
 };
 const getReviews = {
-  body: Joi.object().keys({
+  params: Joi.object().keys({
     adId: Joi.number().integer().required().min(0),
   }),
 };
